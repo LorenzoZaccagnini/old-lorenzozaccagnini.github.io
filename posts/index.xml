@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Thorrwulf</title><link>https://lorenzozaccagnini.github.io/posts/</link><description>Recent content in Posts on Thorrwulf</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 16 Aug 2022 00:03:47 +0200</lastBuildDate><atom:link href="https://lorenzozaccagnini.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Soulbound Nft</title><link>https://lorenzozaccagnini.github.io/posts/soulbound-nft/</link><pubDate>Tue, 16 Aug 2022 00:03:47 +0200</pubDate><guid>https://lorenzozaccagnini.github.io/posts/soulbound-nft/</guid><description>Today we will develop a Soulbound NFT, an NFT that can be only minted and not traded or transferred, it is bounded to the first owner. We&amp;rsquo;ll do it using foundry with hardhat integrated. The Github workflow will test (foundry solidity and hardhat typescript) the contracts and uses Slither to statically analyze the code, trying to find the most common vulnerabilities.
+You can find all the code used in my repository here</description><content>&lt;p>Today we will develop a Soulbound NFT, an NFT that can be only minted and not traded or transferred, it is bounded to the first owner. We&amp;rsquo;ll do it using foundry with hardhat integrated. The Github workflow will test &lt;strong>(foundry solidity and hardhat typescript)&lt;/strong> the contracts and &lt;a href="https://github.com/crytic/slither">uses Slither to statically analyze the code&lt;/a>, trying to find the most common vulnerabilities.&lt;/p>
+&lt;p>You can find all the code used in my repository &lt;a href="https://github.com/LorenzoZaccagnini/Soulbound-NFT-foundry-slither">here&lt;/a>&lt;/p>
+&lt;h2 id="1-install-foundry-and-create-the-project">1. Install Foundry and create the project&lt;/h2>
+&lt;h3 id="11-install-foundryhttpsgithubcomgakonstfoundry">1.1 Install &lt;a href="https://github.com/gakonst/foundry">Foundry&lt;/a>.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>curl -L https://foundry.paradigm.xyz | sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="12-create-the-a-new-foundry-project">1.2 Create the a new foundry project&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>forge init soulbound-nft
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="13-install-the-openzeppelin-library">1.3 Install the openzeppelin library&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>forge install openzeppelin/openzeppelin-contracts
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="2-write-the-smart-contract">2. Write the smart contract&lt;/h2>
+&lt;p>Rename the smart contract in the &lt;code>src&lt;/code> folder to &lt;code>NFTToken.sol&lt;/code> or the name you want.&lt;/p>
+&lt;h3 id="21-use-a-pragma-solidity-directive-to-specify-the-compiler-version">2.1 Use a pragma solidity directive to specify the compiler version.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">pragma solidity&lt;/span> &lt;span style="color:#f92672">^&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>.&lt;span style="color:#ae81ff">8&lt;/span>.&lt;span style="color:#ae81ff">13&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Use a version above 0.6.0 to avoid errors and previous vulns, like overflow and underflow. I prefer the latest stable version.&lt;/p>
+&lt;h3 id="22-import-the-openzeppelin-libraries">2.2 Import the openzeppelin libraries.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/token/ERC721/ERC721.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/access/Ownable.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/utils/Counters.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/utils/Strings.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/access/Ownable.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="23-inherit-from-the-erc721-and-ownable-contract">2.3 Inherit from the &lt;code>ERC721&lt;/code> and &lt;code>Ownable&lt;/code> contract.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">contract&lt;/span> &lt;span style="color:#a6e22e">NFTToken&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> ERC721, Ownable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ownable is a library that allows the contract to be owned by a single address. Later we will implement the &lt;code>onlyOwner&lt;/code> modifier to allow only the owner to call the functions.&lt;/p>
+&lt;h3 id="24-setup-a-counter-for-the-token-incremental-id">2.4. Setup a counter for the token incremental id.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">using&lt;/span> Counters &lt;span style="color:#66d9ef">for&lt;/span> Counters.Counter;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Counters.Counter &lt;span style="color:#66d9ef">private&lt;/span> _tokenIdCounter;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Here we are making a new counter and naming it &lt;code>_tokenIdCounter&lt;/code>, using the &lt;code>safemath&lt;/code> library.&lt;/p>
+&lt;h3 id="25-setup-the-token-name-and-symbol">2.5 Setup the token name and symbol.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constructor&lt;/span>() ERC721(&lt;span style="color:#e6db74">&amp;#34;Soulbound&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;SBNFT&amp;#34;&lt;/span>) {}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If you feel confident you can even make a factory to create the token.&lt;/p>
+&lt;h3 id="26-write-the-safemint-function">2.6. Write the &lt;code>safeMint&lt;/code> function.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">safeMint&lt;/span>(&lt;span style="color:#66d9ef">address&lt;/span> to) &lt;span style="color:#66d9ef">public&lt;/span> onlyOwner {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">uint256&lt;/span> tokenId &lt;span style="color:#f92672">=&lt;/span> _tokenIdCounter.current();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> _tokenIdCounter.increment();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> _safeMint(to, tokenId);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This function is similar to the &lt;code>mint&lt;/code> function in the &lt;code>ERC721&lt;/code> contract, but it is protected by the &lt;code>onlyOwner&lt;/code> modifier and uses the &lt;code>_safeMint&lt;/code> function. An Internal function to safely mint a new token. Reverts if the given token ID already exists. If the target address is a contract, it must implement &lt;code>onERC721Received&lt;/code>, which is called upon a safe transfer, and return the magic value &lt;code>bytes4(keccak256(&amp;quot;onERC721Received(address,address,uint256,bytes)&amp;quot;));&lt;/code> otherwise, the transfer is reverted. &lt;a href="https://docs.openzeppelin.com/contracts/2.x/api/token/erc721#ERC721-_safeMint-address-uint256-bytes-">Source Openzeppelin documentation&lt;/a>.&lt;/p>
+&lt;h3 id="27-lets-implement-the-soulbound-features">2.7 Let&amp;rsquo;s implement the soulbound features&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">modifier&lt;/span> &lt;span style="color:#a6e22e">oneTransfer&lt;/span>(&lt;span style="color:#66d9ef">address&lt;/span> &lt;span style="color:#66d9ef">from&lt;/span>) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> require(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">0x0000000000000000000000000000000000000000&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;Soulbound nft can&amp;#39;t be transferred&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> );
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">_&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">_beforeTokenTransfer&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">address&lt;/span> &lt;span style="color:#66d9ef">from&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">address&lt;/span> to,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">uint256&lt;/span> tokenId
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>) &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> oneTransfer(&lt;span style="color:#66d9ef">from&lt;/span>) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> super._beforeTokenTransfer(&lt;span style="color:#66d9ef">from&lt;/span>, to, tokenId);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>oneTransfer&lt;/code> modifier is used to prevent the transfer of the token to any other address, the 0x0000000000000000000000000000000000000000 address it&amp;rsquo;s an impossible from address. We implement &lt;code>oneTransfer&lt;/code> to the &lt;code>_beforeTokenTransfer&lt;/code> function. The &lt;code>_beforeTokenTransfer&lt;/code> overrides the &lt;code>_beforeTokenTransfer&lt;/code> function in the &lt;code>ERC721&lt;/code> contract, and it is called before the transfer, now we have a soulbound nft.&lt;/p>
+&lt;h3 id="28-recap-the-entire-contract">2.8 Recap the entire contract.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// SPDX-License-Identifier: MIT
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">pragma solidity&lt;/span> &lt;span style="color:#f92672">^&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>.&lt;span style="color:#ae81ff">8&lt;/span>.&lt;span style="color:#ae81ff">13&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/token/ERC721/ERC721.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/access/Ownable.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/utils/Counters.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/utils/Strings.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@openzeppelin/contracts/access/Ownable.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">contract&lt;/span> &lt;span style="color:#a6e22e">NFTToken&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> ERC721, Ownable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">using&lt;/span> Counters &lt;span style="color:#66d9ef">for&lt;/span> Counters.Counter;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Counters.Counter &lt;span style="color:#66d9ef">private&lt;/span> _tokenIdCounter;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">constructor&lt;/span>() ERC721(&lt;span style="color:#e6db74">&amp;#34;Soulbound&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;SBNFT&amp;#34;&lt;/span>) {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">modifier&lt;/span> &lt;span style="color:#a6e22e">oneTransfer&lt;/span>(&lt;span style="color:#66d9ef">address&lt;/span> &lt;span style="color:#66d9ef">from&lt;/span>) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> require(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">0x0000000000000000000000000000000000000000&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;Soulbound nft can&amp;#39;t be transferred&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> );
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">_&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">safeMint&lt;/span>(&lt;span style="color:#66d9ef">address&lt;/span> to) &lt;span style="color:#66d9ef">public&lt;/span> onlyOwner {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">uint256&lt;/span> tokenId &lt;span style="color:#f92672">=&lt;/span> _tokenIdCounter.current();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> _tokenIdCounter.increment();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> _safeMint(to, tokenId);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">_beforeTokenTransfer&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">address&lt;/span> &lt;span style="color:#66d9ef">from&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">address&lt;/span> to,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">uint256&lt;/span> tokenId
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ) &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> oneTransfer(&lt;span style="color:#66d9ef">from&lt;/span>) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> super._beforeTokenTransfer(&lt;span style="color:#66d9ef">from&lt;/span>, to, tokenId);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="3-write-foundry-tests-in-solidity">3. Write Foundry tests in solidity&lt;/h2>
+&lt;p>Foundry tests are a way to test the contracts in solidity, they are really fast compared to truffle or hardhat. Foundry is made in Rust, so it&amp;rsquo;s blazing fast. Rename the test contract file in the &lt;code>test&lt;/code> folder to &lt;code>NFTToken.t.sol&lt;/code>, or the name you want that respects the naming convention &lt;code>NAMECONTRACT.t.sol&lt;/code>.&lt;/p>
+&lt;h3 id="31-setup-the-test-environment">3.1 Setup the test environment.&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// SPDX-License-Identifier: UNLICENSED
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">pragma solidity&lt;/span> &lt;span style="color:#f92672">^&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>.&lt;span style="color:#ae81ff">8&lt;/span>.&lt;span style="color:#ae81ff">13&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;forge-std/Test.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;../src/NFTToken.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">contract&lt;/span> &lt;span style="color:#a6e22e">NFTTokenTest&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> Test {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">using&lt;/span> stdStorage &lt;span style="color:#66d9ef">for&lt;/span> StdStorage;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> NFTToken &lt;span style="color:#66d9ef">private&lt;/span> nft;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">setUp&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">new&lt;/span> NFTToken();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>I import the &lt;code>Test&lt;/code> contract, and the &lt;code>NFTToken&lt;/code> contract. NFTTokenTest is the name of the test contract. We are using the &lt;code>stdStorage&lt;/code>, &lt;a href="https://book.getfoundry.sh/reference/forge-std/std-storage">a library that makes manipulating storage easy&lt;/a>. &lt;code>setUp()&lt;/code> is a function that is called before each test, and it initializes the contract.&lt;/p>
+&lt;h3 id="32-test-smart-contract-functions">3.2 Test Smart contract functions.&lt;/h3>
+&lt;p>Here I&amp;rsquo;m testing the smart contract functions. The pattern is easy to understand, we test the function correct output and revert if it&amp;rsquo;s not correct with the &lt;code>vm.expectRevert()&lt;/code> function. The &lt;code>vm.startPrank()&lt;/code> and &lt;code>vm.stopPrank()&lt;/code> functions are used to simulate a user that is not the owner. By using solidity to write tests we can test the smart contract functions the closest possible to a real user or external contract.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-solidity" data-lang="solidity">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// SPDX-License-Identifier: UNLICENSED
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">pragma solidity&lt;/span> &lt;span style="color:#f92672">^&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>.&lt;span style="color:#ae81ff">8&lt;/span>.&lt;span style="color:#ae81ff">13&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;forge-std/Test.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;../src/NFTToken.sol&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">contract&lt;/span> &lt;span style="color:#a6e22e">NFTTokenTest&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> Test {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">using&lt;/span> stdStorage &lt;span style="color:#66d9ef">for&lt;/span> StdStorage;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NFTToken &lt;span style="color:#66d9ef">private&lt;/span> nft;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">setUp&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">new&lt;/span> NFTToken();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testDeployment&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.name(), &lt;span style="color:#e6db74">&amp;#34;Soulbound&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.symbol(), &lt;span style="color:#e6db74">&amp;#34;SBNFT&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testOwner&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.owner(), &lt;span style="color:#66d9ef">address&lt;/span>(this));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testMintFailByNotOwnerUser&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.expectRevert(&lt;span style="color:#e6db74">&amp;#34;Ownable: caller is not the owner&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.startPrank(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.safeMint(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.stopPrank();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testMint&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.safeMint(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">1&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.balanceOf(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">1&lt;/span>)), &lt;span style="color:#ae81ff">1&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.ownerOf(&lt;span style="color:#ae81ff">0&lt;/span>), &lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">1&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testTransferFail&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.safeMint(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.expectRevert(&lt;span style="color:#e6db74">&amp;#34;Soulbound nft can&amp;#39;t be transferred&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.startPrank(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.safeTransferFrom(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>), &lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">3&lt;/span>), &lt;span style="color:#ae81ff">0&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.stopPrank();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testOwnerTransfer&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.owner(), &lt;span style="color:#66d9ef">address&lt;/span>(this));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.transferOwnership(&lt;span style="color:#ae81ff">0x1111111111111111111111111111111111111111&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.owner(), &lt;span style="color:#ae81ff">0x1111111111111111111111111111111111111111&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">testOwnerTransferFail&lt;/span>() &lt;span style="color:#66d9ef">public&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assertEq(nft.owner(), &lt;span style="color:#66d9ef">address&lt;/span>(this));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.expectRevert(&lt;span style="color:#e6db74">&amp;#34;Ownable: caller is not the owner&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.startPrank(&lt;span style="color:#66d9ef">address&lt;/span>(&lt;span style="color:#ae81ff">2&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> nft.transferOwnership(&lt;span style="color:#ae81ff">0x1111111111111111111111111111111111111111&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> vm.stopPrank();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="33-test-contract-using-forge">3.3 Test contract using Forge&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>forge test
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>All test cases should pass.&lt;/p>
+&lt;h2 id="4-integrating-foundry-with-hardhat">4. Integrating Foundry with Hardhat&lt;/h2>
+&lt;p>Hardhat by default expects libraries to be installed in &lt;code>node_modules&lt;/code>, the default folder for all NodeJS dependencies. Foundry expects them to be in &lt;code>lib&lt;/code>. Of course we can configure Foundry but not easily to the directory structure of &lt;code>node_modules&lt;/code>. &lt;a href="https://book.getfoundry.sh/config/hardhat">Documentation&lt;/a> has more information.&lt;/p>
+&lt;h3 id="41-install-hardhat">4.1 Install hardhat&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>yarn init
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>yarn add hardhat hardhat-preprocessor
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>npx hardhat
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>forge remappings &amp;gt; remappings.txt
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You will need to re-run forge remappings everytime you modify libraries in Foundry. Now your &lt;code>remappings.txt&lt;/code> should look like this:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ds-test/&lt;span style="color:#f92672">=&lt;/span>lib/solmate/lib/ds-test/src/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>forge-std/&lt;span style="color:#f92672">=&lt;/span>lib/forge-std/src/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>openzeppelin-contracts/contracts/&lt;span style="color:#f92672">=&lt;/span>lib/openzeppelin-contracts/contracts/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>solmate/&lt;span style="color:#f92672">=&lt;/span>lib/solmate/src/
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="42-configure-hardhat">4.2 Configure hardhat&lt;/h3>
+&lt;p>Edit &lt;code>hardhat.config.ts&lt;/code> to look like this:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-typescript" data-lang="typescript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">fs&lt;/span> &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;fs&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@nomicfoundation/hardhat-chai-matchers&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@typechain/hardhat&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#e6db74">&amp;#34;hardhat-preprocessor&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">HardhatUserConfig&lt;/span>, &lt;span style="color:#a6e22e">task&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;hardhat/config&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">function&lt;/span> &lt;span style="color:#a6e22e">getRemappings() {&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">fs&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">readFileSync&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;remappings.txt&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;utf8&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">split&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;\n&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">filter&lt;/span>(Boolean)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">map&lt;/span>((&lt;span style="color:#a6e22e">line&lt;/span>) &lt;span style="color:#f92672">=&amp;gt;&lt;/span> &lt;span style="color:#a6e22e">line&lt;/span>.&lt;span style="color:#a6e22e">trim&lt;/span>().&lt;span style="color:#a6e22e">split&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#a6e22e">config&lt;/span>: &lt;span style="color:#66d9ef">HardhatUserConfig&lt;/span> &lt;span style="color:#f92672">=&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">solidity&lt;/span>&lt;span style="color:#f92672">:&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">version&lt;/span>&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#e6db74">&amp;#34;0.8.13&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">settings&lt;/span>&lt;span style="color:#f92672">:&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">optimizer&lt;/span>&lt;span style="color:#f92672">:&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">enabled&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">runs&lt;/span>: &lt;span style="color:#66d9ef">200&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">paths&lt;/span>&lt;span style="color:#f92672">:&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">sources&lt;/span>&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#e6db74">&amp;#34;./src&amp;#34;&lt;/span>, &lt;span style="color:#75715e">// Use ./src rather than ./contracts as Hardhat expects
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#a6e22e">cache&lt;/span>&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#e6db74">&amp;#34;./cache_hardhat&amp;#34;&lt;/span>, &lt;span style="color:#75715e">// Use a different cache for Hardhat than Foundry
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// This fully resolves paths for imports in the ./lib directory for Hardhat
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#a6e22e">preprocess&lt;/span>&lt;span style="color:#f92672">:&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">eachLine&lt;/span>&lt;span style="color:#f92672">:&lt;/span> (&lt;span style="color:#a6e22e">hre&lt;/span>) &lt;span style="color:#f92672">=&amp;gt;&lt;/span> ({
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">transform&lt;/span>&lt;span style="color:#f92672">:&lt;/span> (&lt;span style="color:#a6e22e">line&lt;/span>: &lt;span style="color:#66d9ef">string&lt;/span>) &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (&lt;span style="color:#a6e22e">line&lt;/span>.&lt;span style="color:#a6e22e">match&lt;/span>(&lt;span style="color:#e6db74">/^\s*import /i&lt;/span>)) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">getRemappings&lt;/span>().&lt;span style="color:#a6e22e">forEach&lt;/span>(([&lt;span style="color:#a6e22e">find&lt;/span>, &lt;span style="color:#a6e22e">replace&lt;/span>]) &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (&lt;span style="color:#a6e22e">line&lt;/span>.&lt;span style="color:#a6e22e">match&lt;/span>(&lt;span style="color:#a6e22e">find&lt;/span>)) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">line&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#a6e22e">line&lt;/span>.&lt;span style="color:#a6e22e">replace&lt;/span>(&lt;span style="color:#a6e22e">find&lt;/span>, &lt;span style="color:#a6e22e">replace&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">line&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">export&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span> &lt;span style="color:#a6e22e">config&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="5-write-hardhat-tests-in-typescript">5. Write Hardhat tests in typescript&lt;/h2>
+&lt;h3 id="51-create-test-contract">5.1 Create test contract&lt;/h3>
+&lt;p>Create the contract in the &lt;code>test&lt;/code> folder using this name convention &lt;code>nfttoken.test.ts&lt;/code>.&lt;/p>
+&lt;h3 id="52-write-test-hardhat-file">5.2 Write test hardhat file&lt;/h3>
+&lt;p>Here we do the same as the Foundry tests, but we use the hardhat &lt;code>expect&lt;/code> and the &lt;code>to.be.revertedWith&lt;/code> function. If the revertedWith is not recognized install the &lt;code>&amp;quot;@nomicfoundation/hardhat-chai-matchers&lt;/code> package. More info &lt;a href="https://hardhat.org/hardhat-chai-matchers/docs/overview">here&lt;/a> about this.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-typescript" data-lang="typescript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">SignerWithAddress&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;@nomiclabs/hardhat-ethers/signers&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">expect&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;chai&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">ethers&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;hardhat&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">NFTToken&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#34;../typechain-types&amp;#34;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">describe&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;NFTToken&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">function&lt;/span> () {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> &lt;span style="color:#a6e22e">owner&lt;/span>: &lt;span style="color:#66d9ef">SignerWithAddress&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> &lt;span style="color:#a6e22e">addr1&lt;/span>: &lt;span style="color:#66d9ef">SignerWithAddress&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> &lt;span style="color:#a6e22e">addr2&lt;/span>: &lt;span style="color:#66d9ef">SignerWithAddress&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>: &lt;span style="color:#66d9ef">NFTToken&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">beforeEach&lt;/span>(&lt;span style="color:#66d9ef">async&lt;/span> &lt;span style="color:#66d9ef">function&lt;/span> () {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#a6e22e">Nft&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">ethers&lt;/span>.&lt;span style="color:#a6e22e">getContractFactory&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;NFTToken&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">nft&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">Nft&lt;/span>.&lt;span style="color:#a6e22e">deploy&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">deployed&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [&lt;span style="color:#a6e22e">owner&lt;/span>, &lt;span style="color:#a6e22e">addr1&lt;/span>, &lt;span style="color:#a6e22e">addr2&lt;/span>] &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">ethers&lt;/span>.&lt;span style="color:#a6e22e">getSigners&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should return name and symbol&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> &lt;span style="color:#66d9ef">function&lt;/span> () {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">name&lt;/span>()).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Soulbound&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#66d9ef">symbol&lt;/span>()).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;SBNFT&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should set the first account as the owner&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">owner&lt;/span>()).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#a6e22e">owner&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should NOT mint a token as NOT the Owner&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">connect&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>).&lt;span style="color:#a6e22e">safeMint&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>)).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">be&lt;/span>.&lt;span style="color:#a6e22e">revertedWith&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;Ownable: caller is not the owner&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> );
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should mint a token as the Owner&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">safeMint&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">ownerOf&lt;/span>(&lt;span style="color:#ae81ff">0&lt;/span>)).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">balanceOf&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>)).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#ae81ff">1&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should not be able to transfer soulbound token&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">safeMint&lt;/span>(&lt;span style="color:#a6e22e">owner&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">//OVERLOADED TRANSFER function
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">expect&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">nft&lt;/span>[&lt;span style="color:#e6db74">&amp;#34;safeTransferFrom(address,address,uint256)&amp;#34;&lt;/span>](
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">owner&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">addr2&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">be&lt;/span>.&lt;span style="color:#a6e22e">revertedWith&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Soulbound nft can&amp;#39;t be transferred&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should NOT transfer the contract NON owner to the new owner&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">expect&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">connect&lt;/span>(&lt;span style="color:#a6e22e">addr1&lt;/span>).&lt;span style="color:#a6e22e">transferOwnership&lt;/span>(&lt;span style="color:#a6e22e">addr2&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">be&lt;/span>.&lt;span style="color:#a6e22e">revertedWith&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Ownable: caller is not the owner&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">it&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;Should transfer the contract owner to the new owner&amp;#34;&lt;/span>, &lt;span style="color:#66d9ef">async&lt;/span> () &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">transferOwnership&lt;/span>(&lt;span style="color:#a6e22e">addr2&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">expect&lt;/span>(&lt;span style="color:#66d9ef">await&lt;/span> &lt;span style="color:#a6e22e">nft&lt;/span>.&lt;span style="color:#a6e22e">owner&lt;/span>()).&lt;span style="color:#a6e22e">to&lt;/span>.&lt;span style="color:#a6e22e">equal&lt;/span>(&lt;span style="color:#a6e22e">addr2&lt;/span>.&lt;span style="color:#a6e22e">address&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>});
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Different addresses are simulated by using the &lt;code>connect&lt;/code> function. The &lt;code>beforeEach&lt;/code> function is used to set up the contract and the &lt;code>it&lt;/code> function is used to test the contract.&lt;/p>
+&lt;h3 id="53-hardhat-vs-forge-vs-truffle">5.3 Hardhat VS Forge VS Truffle&lt;/h3>
+&lt;p>I prefer Forge, is faster and closer to the real environment. Hardhat right now is optional, but I would recommend using it as an alternative. Truffle is now obsolete and will be less and less used in the future.&lt;/p>
+&lt;h2 id="6-create-a-github-workflow-with-tests-and-slither-audit">6. Create a Github workflow with tests and slither audit&lt;/h2>
+&lt;h3 id="61-create-a-github-workflow">6.1 Create a Github workflow&lt;/h3>
+&lt;p>Create a file named &lt;code>.github/workflows/audit.yml&lt;/code> and put this content:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Audit&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">on&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">push&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">branches&lt;/span>: [&lt;span style="color:#ae81ff">main, develop]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pull_request&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">branches&lt;/span>: [&lt;span style="color:#ae81ff">main, develop]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">jobs&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">build&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runs-on&lt;/span>: &lt;span style="color:#ae81ff">ubuntu-latest&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">steps&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">actions/checkout@v3&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">submodules&lt;/span>: &lt;span style="color:#ae81ff">recursive&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Install Foundry&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">foundry-rs/foundry-toolchain@v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">version&lt;/span>: &lt;span style="color:#ae81ff">nightly&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run Forge build&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: |&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> forge --version
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> forge build --sizes&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">build&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run Forge tests&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: |&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#ae81ff">forge test -vvv&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">forge-test&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This will install Foundry and run the Forge build and tests.
+&lt;img src="https://lorenzozaccagnini.github.io/assets/sbnft/foundry_tests.jpg" alt="Passed tests">&lt;/p>
+&lt;h3 id="62-optional-hardat-tests">6.2 Optional Hardat tests&lt;/h3>
+&lt;p>If you want to use hardhat add a step that uses &lt;code>yarn&lt;/code> to instal the packages and run the command &lt;code>npx hardhat test&lt;/code>, this will run the tests with Hardhat.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Setup NodeJS 14&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">actions/setup-node@v2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">node-version&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;14&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Show NodeJS version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">npm --version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Install Dependencies&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">npm install&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run hardhat Test&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">npx hardhat compile; npx hardhat test&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Should look like this:
+&lt;img src="https://lorenzozaccagnini.github.io/assets/sbnft/hardhat_tests.jpg" alt="Passed tests">&lt;/p>
+&lt;h3 id="63-add-slither-audit">6.3 Add slither audit&lt;/h3>
+&lt;p>Slither is a Solidity static analysis framework written in Python 3. It runs a suite of vulnerability detectors, prints visual information about contract details, and provides an API to easily write custom analyses. Slither enables developers to find vulnerabilities, enhance their code comprehension, and quickly prototype custom analyses. &lt;a href="https://github.com/crytic/slither">Source&lt;/a>&lt;/p>
+&lt;p>We can even add slither manually, but I prefer to use &lt;code>slither-action&lt;/code> command. It&amp;rsquo;s a great tool because will push slither&amp;rsquo;s alerts to the Security tab of the Github project, easing the triaging of findings and improving the continious integration flow.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">slither-action&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">crytic/slither-action@v0.1.1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">continue-on-error&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">slither&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">sarif&lt;/span>: &lt;span style="color:#ae81ff">results.sarif&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Upload SARIF file&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">github/codeql-action/upload-sarif@v2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">sarif_file&lt;/span>: &lt;span style="color:#ae81ff">${{ steps.slither.outputs.sarif }}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If everything is correct you will this result in the Security tab of the Github project:
+&lt;img src="https://lorenzozaccagnini.github.io/assets/sbnft/slither_results.jpg" alt="slither results">&lt;/p>
+&lt;h3 id="64-recap">6.4 Recap&lt;/h3>
+&lt;p>They yaml file is used to create a Github workflow that will run the tests and slither audit. Should look like this:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Hardhat Build&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">on&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">push&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">branches&lt;/span>: [&lt;span style="color:#ae81ff">main, develop]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pull_request&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">branches&lt;/span>: [&lt;span style="color:#ae81ff">main, develop]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">jobs&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">build&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runs-on&lt;/span>: &lt;span style="color:#ae81ff">ubuntu-latest&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">steps&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">actions/checkout@v3&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">submodules&lt;/span>: &lt;span style="color:#ae81ff">recursive&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Install Foundry&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">foundry-rs/foundry-toolchain@v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">version&lt;/span>: &lt;span style="color:#ae81ff">nightly&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run Forge build&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: |&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> forge --version
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> forge build --sizes&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">build&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run Forge tests&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: |&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#ae81ff">forge test -vvv&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">forge-test&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Setup NodeJS 14&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">actions/setup-node@v2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">node-version&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;14&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Show NodeJS version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">npm --version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Install Dependencies&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">yarn&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Run hardhat Test&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>: &lt;span style="color:#ae81ff">npx hardhat compile; npx hardhat test&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">slither-action&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">crytic/slither-action@v0.1.1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">continue-on-error&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">id&lt;/span>: &lt;span style="color:#ae81ff">slither&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">sarif&lt;/span>: &lt;span style="color:#ae81ff">results.sarif&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">Upload SARIF file&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">uses&lt;/span>: &lt;span style="color:#ae81ff">github/codeql-action/upload-sarif@v2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">with&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">sarif_file&lt;/span>: &lt;span style="color:#ae81ff">${{ steps.slither.outputs.sarif }}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></content></item></channel></rss>
