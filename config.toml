@@ -1,0 +1,37 @@
+baseurl = "https://example.com/"
+languageCode = "en-us"
+theme = "hugo-theme-terminal"
+paginate = 5
+
+[params]
+  contentTypeName = "posts"
+  themeColor = "green"
+  showMenuItems = 2
+  fullWidthTheme = false
+  centerTheme = true
+
+[languages]
+  [languages.en]
+    title = "Thorrwulf"
+    subtitle = "My Blockchain dungeon"
+    keywords = ""
+    copyright = ""
+    menuMore = "Show more"
+    readMore = "Read more"
+    readOtherPosts = "Read other posts"
+    readingTime = true
+
+    [languages.en.params.logo]
+      logoText = "Thorrwulf"
+      logoHomeLink = "/"
+
+    [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "blog"
+        name = "Blog"
+        url = "/"
+
+      [[languages.en.menu.main]]
+        identifier = "about"
+        name = "About"
+        url = "/about"
