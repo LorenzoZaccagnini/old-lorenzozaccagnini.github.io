@@ -3,7 +3,7 @@ title: "Who is Lorenzo 'Thorrwulf' Zaccagnini "
 date: 2022-08-16T00:03:47+02:00
 ---
 
-Smart contract auditor and cryptography nerd, follow me on my Twitch channel Thorrwulf
+Smart contract auditor and cryptography nerd, follow me on my Twitch channel Thorrwulf. If you are a real person send me a message on my [Linkedin](https://www.linkedin.com/in/lorenzo-zaccagnini/) or [Twitter](https://twitter.com/Thorrwulf).
 
 I built my first p2p client and hub at 14y in C++, now I prefer Rust. The long part…
 
