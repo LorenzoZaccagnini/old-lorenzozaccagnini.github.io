@@ -88,7 +88,7 @@ If you feel confident you can even make a factory to create the token.
     }
 ```
 
-This function is similar to the `mint` function in the `ERC721` contract, but it is protected by the `onlyOwner` modifier and uses the `_safeMint` function. An Internal function to safely mint a new token. Reverts if the given token ID already exists. If the target address is a contract, it must implement `onERC721Received`, which is called upon a safe transfer, and return the magic value `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));` otherwise, the transfer is reverted. [Source Openzeppelin documentation](https://docs.openzeppelin.com/contracts/2.x/api/token/erc721#ERC721-_safeMint-address-uint256-bytes-).
+This function is similar to the `mint` function in the `ERC721` contract, but it is protected by the `onlyOwner` modifier and uses the `_safeMint` function. An Internal function to safely mint a new token. Reverts if the given token ID already exists. If the target address is a contract, it must implement `onERC721Received`, which is called upon a safe transfer, and return the magic value `bytes4(keccak256...` otherwise, the transfer is reverted. [Source Openzeppelin documentation](https://docs.openzeppelin.com/contracts/2.x/api/token/erc721#ERC721-_safeMint-address-uint256-bytes-).
 
 ### 2.7 Let's implement the soulbound features
 
