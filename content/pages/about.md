@@ -1,7 +1,9 @@
 ---
-title: "Who is Lorenzo 'Thorrwulf' Zaccagnini "
+title: "About"
 date: 2022-08-16T00:03:47+02:00
 ---
+
+## Who is Lorenzo 'Thorrwulf' Zaccagnini
 
 Smart contract auditor and cryptography nerd, follow me on my Twitch channel Thorrwulf. It's possible to contact me on Telegram at [@Thorrwulf](https://t.me/Thorrwulf).
 

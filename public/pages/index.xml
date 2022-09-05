@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pages on </title>
+    <link>https://lorenzozaccagnini.github.io/pages/</link>
+    <description>Recent content in Pages on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).</copyright>
+    <lastBuildDate>Tue, 16 Aug 2022 00:03:47 +0200</lastBuildDate><atom:link href="https://lorenzozaccagnini.github.io/pages/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Who is Lorenzo &#39;Thorrwulf&#39; Zaccagnini </title>
+      <link>https://lorenzozaccagnini.github.io/pages/about/</link>
+      <pubDate>Tue, 16 Aug 2022 00:03:47 +0200</pubDate>
+      
+      <guid>https://lorenzozaccagnini.github.io/pages/about/</guid>
+      <description>Smart contract auditor and cryptography nerd, follow me on my Twitch channel Thorrwulf. It&amp;rsquo;s possible to contact me on Telegram at @Thorrwulf.
+I built my first p2p client and hub at 14y in C++, now I prefer Rust. The long part…
+I&amp;rsquo;ve years of experience in teaching and developing web apps (front and backend in Javascript), and decentralized apps on EVM blockchains like Ethereum. I have extensive knowledge about vulnerabilities of smart contracts and web apps, my analysis and audits often appear in national and international media, with topics ranging from contact tracing apps to DAOs NFTs Oracles, and Defi projects.</description>
+    </item>
+    
+  </channel>
+</rss>

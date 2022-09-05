@@ -2,7 +2,7 @@ baseurl = "https://lorenzozaccagnini.github.io"
 languageCode = "en-us"
 theme = "hugo-ficurinia"
 paginate = 5
-
+title = "Thorrwulf"
 author = "Lorenzo Zaccagnini"
 copyright = "Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/)."
 
@@ -40,24 +40,14 @@ copyright = "Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International
 
 
 [menu]
-    [[menu.main]]
-        identifier = "archguide"
-        name = "Arch guide"
-        url = "/archguide"
-        weight = 99
     [[menu.icons]]
-        identifier = "gitlab"
-        name = "GitLab"
-        url = "https://gitlab.com/gabmus"
+        identifier = "github"
+        name = "Github"
+        url = "https://github.com/LorenzoZaccagnini"
         weight = 10
-    [[menu.icons]]
-        identifier = "gnome"
-        name = "GNOME GitLab"
-        url = "https://gitlab.gnome.org/gabmus"
-        weight = 20
     [[menu.icons]]
         identifier = "youtube"
         name = "YouTube"
-        url = "https://youtube.com/TechPillsNet"
+        url = "https://youtube.com/Thorrwulf"
         weight = 30
 

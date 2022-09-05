@@ -459,7 +459,7 @@ jobs:
 ```
 
 This will install Foundry and run the Forge build and tests.
-{{< image src="/img/foundry_tests.jpg" alt="foundry tests" position="center" style="border-radius: 8px;" >}}
+![](/images/post_pics/foundry_tests.jpg)
 
 ### 6.2 Optional Hardat tests
 
@@ -481,7 +481,7 @@ If you want to use hardhat add a step that uses `yarn` to instal the packages an
 ```
 
 Should look like this:
-{{< image src="/img/hardhat_tests.jpg" alt="Passed tests" position="center" style="border-radius: 8px;" >}}
+![](/images/post_pics/hardhat_tests.jpg)
 
 ### 6.3 Add slither audit
 
@@ -504,7 +504,7 @@ We can even add slither manually, but I prefer to use `slither-action` command. 
 ```
 
 If everything is correct you will this result in the Security tab of the Github project:
-{{< image src="/img/slither_results.jpg" alt="slither results" position="center" style="border-radius: 8px;" >}}
+![](/images/post_pics/slither_results.jpg)
 
 ### 6.4 Recap
 
