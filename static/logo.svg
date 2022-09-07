@@ -1,71 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0.2 (e86c870879, 2021-01-15, custom)"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 67.733332 67.733335"
-   height="256"
-   width="256"
-   sodipodi:docname="avatar_gh_vector.svg">
-  <defs
-     id="defs2" />
-  <sodipodi:namedview
-     units="px"
-     showgrid="false"
-     inkscape:document-rotation="0"
-     inkscape:current-layer="layer1"
-     inkscape:document-units="px"
-     inkscape:cy="162.80551"
-     inkscape:cx="126.43695"
-     inkscape:zoom="1.4"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     borderopacity="1.0"
-     bordercolor="#666666"
-     pagecolor="#ffffff"
-     id="base"
-     inkscape:window-width="2560"
-     inkscape:window-height="1371"
-     inkscape:window-x="0"
-     inkscape:window-y="32"
-     inkscape:window-maximized="1" />
-  <metadata
-     id="metadata5">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     id="layer1"
-     inkscape:groupmode="layer"
-     inkscape:label="Layer 1"
-     transform="translate(220.00053,40.773762)">
-    <g
-       id="g849">
-      <rect
-         style="opacity:1;fill:#f0f0f0;fill-opacity:1;stroke-width:11.3771;stroke-linecap:square;paint-order:markers stroke fill"
-         id="rect831"
-         width="67.733337"
-         height="67.733337"
-         x="-220.00053"
-         y="-40.773762" />
-      <path
-         id="rect847"
-         style="fill:#d44688;fill-opacity:1;stroke-width:3.43905;stroke-linecap:round;paint-order:markers stroke fill"
-         d="m -214.31199,-35.190473 v 22.733904 h 11.38551 v 11.073483 h -11.38551 V 9.8183311 h 11.38551 33.58522 11.38551 V -1.383086 h -11.38551 v -11.073483 h 11.38551 v -22.733904 h -22.7339 v 22.733904 11.073483 h -10.88843 v -33.807387 z" />
-    </g>
-  </g>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 1080 1080" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g id="Livello-3" vectornator:layerName="Livello 3"/>
+<g id="Livello-2" vectornator:layerName="Livello 2"/>
+<clipPath id="ArtboardFrame">
+<rect height="1080" width="1080" x="0" y="0"/>
+</clipPath>
+<g clip-path="url(#ArtboardFrame)" id="Livello-1" vectornator:layerName="Livello 1">
+<g opacity="1">
+<path d="M67.5 0L129.015 134.765L943.534 136.16L1012.5 0L1012.5 405L607.5 1080L472.5 1080L67.5 405L67.5 0Z" fill="#303030" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M202.5 270L472.5 270L472.5 945L202.5 270Z" fill="#5e5e5e" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M607.5 270L607.5 945L877.5 270L607.5 270Z" fill="#5e5e5e" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M337.5 405L472.5 810L472.5 405L337.5 405Z" fill="#e94420" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M607.5 810L607.5 405L742.5 405L607.5 810Z" fill="#e94420" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M1012.5 1080" fill="none" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="3.7687"/>
+</g>
+</g>
 </svg>
