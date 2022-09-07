@@ -1,37 +1,53 @@
 baseurl = "https://lorenzozaccagnini.github.io"
 languageCode = "en-us"
-theme = "hugo-theme-terminal"
+theme = "hugo-ficurinia"
 paginate = 5
+title = "Thorrwulf"
+author = "Lorenzo Zaccagnini"
+copyright = "Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/)."
 
 [params]
-  contentTypeName = "posts"
-  themeColor = "green"
-  showMenuItems = 2
-  fullWidthTheme = false
-  centerTheme = true
+    description = "Thorrwulf's blog about blockchain and cybersecurity"
+    author = "Lorenzo Zaccagnini"
+    logo = "/logo.svg"
+    favicon = "/favicon.png"
+    faviconIco = "/favicon.ico"
+    appletouch = "/apple-touch-icon.png"
+    svgicon = "/logo.svg"
+    icon512 = "/android-chrome-512x512.png"
+    
+    imageInArticlePreview = true
 
-[languages]
-  [languages.en]
-    title = "Thorrwulf"
-    subtitle = "My Blockchain dungeon"
-    keywords = ""
-    copyright = ""
-    menuMore = "Show more"
-    readMore = "Read more"
-    readOtherPosts = "Read other posts"
-    readingTime = true
+    enableShareOnFediverse = true
 
-    [languages.en.params.logo]
-      logoText = "Thorrwulf"
-      logoHomeLink = "/"
+    enableRelatedArticles = true
+    relatedArticlesNum = 2 
+    forceRedirect = true
 
-    [languages.en.menu]
-      [[languages.en.menu.main]]
-        identifier = "blog"
-        name = "Blog"
-        url = "/"
 
-      [[languages.en.menu.main]]
-        identifier = "about"
-        name = "About"
-        url = "/about"
+[markup]
+    [markup.highlight]
+        codeFences = true
+        guessSyntax = true
+        lineNos = false
+        lineNumbersInTable = false
+        tabWidth = 4
+        style = "dracula"
+    [markup.tableOfContents]
+        endLevel = 5
+        ordered = false
+        startLevel = 1
+
+
+[menu]
+    [[menu.icons]]
+        identifier = "github"
+        name = "Github"
+        url = "https://github.com/LorenzoZaccagnini"
+        weight = 10
+    [[menu.icons]]
+        identifier = "youtube"
+        name = "YouTube"
+        url = "https://www.youtube.com/channel/UCG3x5s-ozMUr0uXv4d8mP-g"
+        weight = 30
+
