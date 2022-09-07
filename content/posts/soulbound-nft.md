@@ -1,6 +1,14 @@
 ---
-title: "Soulbound Nft"
+title: "Develop a Soulbound NFT using Foundry and Slither"
 date: 2022-08-16T00:03:47+02:00
+tags:
+  - blockchain
+  - nft
+  - slither
+  - cybersecurity
+  - foundry
+  - hardhat
+image: "/images/post_pics/soulbound-nft-cover.jpg"
 ---
 
 Today we will develop a Soulbound NFT, an NFT that can be only minted and not traded or transferred, it is bounded to the first owner. We'll do it using foundry with hardhat integrated. The Github workflow will test **(foundry solidity and hardhat typescript)** the contracts and [uses Slither to statically analyze the code](https://github.com/crytic/slither), trying to find the most common vulnerabilities.
@@ -87,7 +95,7 @@ If you feel confident you can even make a factory to create the token.
     }
 ```
 
-This function is similar to the `mint` function in the `ERC721` contract, but it is protected by the `onlyOwner` modifier and uses the `_safeMint` function. An Internal function to safely mint a new token. Reverts if the given token ID already exists. If the target address is a contract, it must implement `onERC721Received`, which is called upon a safe transfer, and return the magic value `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));` otherwise, the transfer is reverted. [Source Openzeppelin documentation](https://docs.openzeppelin.com/contracts/2.x/api/token/erc721#ERC721-_safeMint-address-uint256-bytes-).
+This function is similar to the `mint` function in the `ERC721` contract, but it is protected by the `onlyOwner` modifier and uses the `_safeMint` function. An Internal function to safely mint a new token. Reverts if the given token ID already exists. If the target address is a contract, it must implement `onERC721Received`, which is called upon a safe transfer, and return the magic value `bytes4(keccak256...` otherwise, the transfer is reverted. [Source Openzeppelin documentation](https://docs.openzeppelin.com/contracts/2.x/api/token/erc721#ERC721-_safeMint-address-uint256-bytes-).
 
 ### 2.7 Let's implement the soulbound features
 
@@ -458,7 +466,7 @@ jobs:
 ```
 
 This will install Foundry and run the Forge build and tests.
-![Passed tests](/assets/sbnft/foundry_tests.jpg)
+![](/images/post_pics/foundry_tests.jpg)
 
 ### 6.2 Optional Hardat tests
 
@@ -480,7 +488,7 @@ If you want to use hardhat add a step that uses `yarn` to instal the packages an
 ```
 
 Should look like this:
-![Passed tests](/assets/sbnft/hardhat_tests.jpg)
+![](/images/post_pics/hardhat_tests.jpg)
 
 ### 6.3 Add slither audit
 
@@ -503,7 +511,7 @@ We can even add slither manually, but I prefer to use `slither-action` command. 
 ```
 
 If everything is correct you will this result in the Security tab of the Github project:
-![slither results](/assets/sbnft/slither_results.jpg)
+![](/images/post_pics/slither_results.jpg)
 
 ### 6.4 Recap
 

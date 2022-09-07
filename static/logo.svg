@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 1080 1080" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g id="Livello-3" vectornator:layerName="Livello 3"/>
+<g id="Livello-2" vectornator:layerName="Livello 2"/>
+<clipPath id="ArtboardFrame">
+<rect height="1080" width="1080" x="0" y="0"/>
+</clipPath>
+<g clip-path="url(#ArtboardFrame)" id="Livello-1" vectornator:layerName="Livello 1">
+<g opacity="1">
+<path d="M67.5 0L129.015 134.765L943.534 136.16L1012.5 0L1012.5 405L607.5 1080L472.5 1080L67.5 405L67.5 0Z" fill="#303030" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M202.5 270L472.5 270L472.5 945L202.5 270Z" fill="#5e5e5e" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M607.5 270L607.5 945L877.5 270L607.5 270Z" fill="#5e5e5e" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M337.5 405L472.5 810L472.5 405L337.5 405Z" fill="#e94420" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M607.5 810L607.5 405L742.5 405L607.5 810Z" fill="#e94420" fill-rule="nonzero" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+<path d="M1012.5 1080" fill="none" opacity="1" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="3.7687"/>
+</g>
+</g>
+</svg>
