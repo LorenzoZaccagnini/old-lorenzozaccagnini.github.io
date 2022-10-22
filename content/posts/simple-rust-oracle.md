@@ -45,6 +45,8 @@ Different types of oracles exist, some of them are:
 
 We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise it will be necessary to run a full node.
 
+All the code of this article is available on [Github](https://github.com/LorenzoZaccagnini/simple-rust-ethereum-inbound-oracle).
+
 ### 3.1. Install Rust
 
 If you don't have Rust installed on your machine, you can follow the [official installation guide](https://www.rust-lang.org/tools/install).
