@@ -1,6 +1,6 @@
 ---
 title: "Develop an Ethereum oracle with Rust"
-date: 2022-22-10T00:03:47+02:00
+date: 2022-10-22T00:03:47+02:00
 tags:
   - blockchain
   - oracle
@@ -8,7 +8,7 @@ tags:
   - alchemy
   - infura
   - web3
-image: "/images/post_pics/soulbound-nft-cover.jpg"
+image: "/images/post_pics/oraclecover.jpg"
 ---
 
 A blockhain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track everytime a [Ethereum Name Service NFT](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
@@ -17,11 +17,19 @@ A blockhain oracle is a service that allows smart contracts to interact with ext
 
 Blockchains can't access external data sources natively because it is a deterministic system. Each node in the network has a copy of the blockchain, they must all agree on the same state. If a smart contract was able to access external data sources, it would break the deterministic nature of the blockchain. The verification of the state of the blockchain would be impossible, remember same inputs always produce the same outputs.
 
+I've solved this problem by using a blockchain oracle. A blockchain oracle is a service that allows smart contracts to interact with external data sources. The oracle will be responsible for fetching the external data and sending it to the smart contract. The smart contract will then be able to access the data.
+
 Let's make an example to illustrate this. Let's say we have a smart contract that stores the current price of a cryptocurrency. If the price of the cryptocurrency is updated every 10 seconds on an external API, the smart contract will have to be updated every 10 seconds, otherwise the smart contract will be out of sync. It would impossible for others to verify the state of the blockchain.
 
 This is why blockchains need oracles, external data must be fed into the blockchain with a transaction, in this way all nodes in the network will have the same data and the blockchain will remain deterministic.
 
 [Read this fantastic answer on stackoverflow to learn more about that](https://ethereum.stackexchange.com/questions/301/why-cant-contracts-make-api-calls)
+
+In my experience I've developed many blockchain oracles, for our project Devoleum and for many other projects. I've used different langauges but Rust is the one that I love the most. I've developed oracles for various use cases:
+
+- Crosschain bridges
+- Connecting IoT to the Ethereum blockchain
+- Display data from the blockchain for a frontend that does not have access to the blockchain via a browser wallet like metamask.
 
 ## 2. What is an oracle?
 
@@ -51,13 +59,14 @@ cargo new simple-rust-oracle
 
 ### 3.3. Add the dependencies
 
-We will use the web3 crate to interact with the Ethereum blockchain. We will add the web3 crate to our **Cargo.toml** file. **Tokio** is a runtime for asynchronous Rust applications. The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world).
+We will use the web3 crate to interact with the Ethereum blockchain. We will add the web3 crate to our **Cargo.toml** file. **Tokio** is a runtime for asynchronous Rust applications. The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world). Ethnum is used to handle big unsigned integers.
 
 ```toml
 [dependencies]
 web3 = "0.17.0"
 tokio = { version= "1", features = ["full"] }
 dotenv = "0.15.0"
+ethnum = "1.3.0"
 ```
 
 ### 3.4. Create a .env file
@@ -119,7 +128,7 @@ Signature or topic0 = 0x + keccak256("Transfer(address,address,uint256)"))
 
 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef = Transfer(address,address,uint256)
 
-As you can see here on (Etherscan)[https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#events] the event signature is 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+As you can see here on [Etherscan](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#events) the event signature is 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
 
 ![](/images/post_pics/simple_rust_oracle/eventetherscan.jpg)
 
@@ -205,14 +214,55 @@ I've used **future::ready** to run the code asynchronously. I've also used the *
 
 ### 4.5. Decode the event data
 
-We need to decode the event data to get the transfer details.
+We need to decode the event data to get the transfer details. First we import ethnum, after we decode the event data in the **transfer_listen** loop. We get the hex string of token id from the fourth topic, after I use **from_str_radix()** from **ethnum** to convert the hex string to a U256.
 
 ```rust
 use dotenv::dotenv;
+use ethnum::U256;
 use web3;
 use web3::futures::{future, StreamExt};
-use web3::types::Log;
 
 #[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
+    let web3 = web3::Web3::new(web3::transports::WebSocket::new(&alchemy_api_key).await?);
 
+    let contract_address = "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85";
+    let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    let filter = web3::types::FilterBuilder::default()
+        .address(vec![contract_address.parse().unwrap()])
+        .from_block(web3::types::BlockNumber::Latest)
+        .topics(
+            Some(vec![event_signature.parse().unwrap()]),
+            None,
+            None,
+            None,
+        )
+        .build();
+
+    let transfer_listen = web3.eth_subscribe().subscribe_logs(filter).await?;
+
+    transfer_listen
+        .for_each(|log| {
+            let id = format!("{:?}", log.unwrap().topics[3]);
+            println!("id NOT decoded: {:?}", id);
+            let id_decoded = U256::from_str_radix(&id[2..], 16).unwrap();
+            println!("id decoded: {:?}", id_decoded);
+            println!("----------");
+            future::ready(())
+        })
+        .await;
+
+    Ok(())
+}
 ```
+
+**The result should be this:**
+
+![](/images/post_pics/simple_rust_oracle/transferid.jpg)
+
+## 5. Do you need to develop an oracle or a bridge?
+
+You can me [Lorenzo Zaccagnini](https://www.linkedin.com/in/lorenzo-zaccagnini/) or [Elisa Romondia](https://www.linkedin.com/in/elisa-romondia/) on LinkedIn. If you want to support me you can donate eth or matic to 0xbf8d0d4be61De94EFCCEffbe5D414f911F11cBF8
