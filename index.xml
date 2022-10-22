@@ -21,6 +21,7 @@
 </ul>
 <h2 id="3-setup-the-ethereum-oracle-project">3. Setup the ethereum oracle project</h2>
 <p>We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise it will be necessary to run a full node.</p>
+<p>All the code of this article is available on <a href="https://github.com/LorenzoZaccagnini/simple-rust-ethereum-inbound-oracle">Github</a>.</p>
 <h3 id="31-install-rust">3.1. Install Rust</h3>
 <p>If you don&rsquo;t have Rust installed on your machine, you can follow the <a href="https://www.rust-lang.org/tools/install">official installation guide</a>.</p>
 <h3 id="32-create-a-new-project">3.2. Create a new project</h3>
