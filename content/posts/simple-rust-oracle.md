@@ -17,7 +17,7 @@ A blockhain oracle is a service that allows smart contracts to interact with ext
 
 Blockchains can't access external data sources natively because it is a deterministic system. Each node in the network has a copy of the blockchain, they must all agree on the same state. If a smart contract was able to access external data sources, it would break the deterministic nature of the blockchain. The verification of the state of the blockchain would be impossible, remember same inputs always produce the same outputs.
 
-I've solved this problem by using a blockchain oracle. A blockchain oracle is a service that allows smart contracts to interact with external data sources. The oracle will be responsible for fetching the external data and sending it to the smart contract. The smart contract will then be able to access the data.
+We can solve this problem by using a blockchain oracle. A blockchain oracle is a service that allows smart contracts to interact with external data sources. The oracle will be responsible for fetching the external data and sending it to the smart contract. The smart contract will then be able to access the data.
 
 Let's make an example to illustrate this. Let's say we have a smart contract that stores the current price of a cryptocurrency. If the price of the cryptocurrency is updated every 10 seconds on an external API, the smart contract will have to be updated every 10 seconds, otherwise the smart contract will be out of sync. It would impossible for others to verify the state of the blockchain.
 
@@ -33,7 +33,7 @@ In my experience I've developed many blockchain oracles, for our project Devoleu
 
 ## 2. What is an oracle?
 
-Most of the time is a simple service that listens to events on the blockchain and updates the state of the smart contract. It can also be a smart contract that is called by other smart contracts to get external data. In this case we will develop a simple service that will listen to events on the ethereum blockchain, more precisely the transfer event of ENS NFTs.
+Most of the time is a simple service that listens to events on the blockchain and updates the state of the smart contract. It can also be a smart contract that is called by other smart contracts to get external data. In this article we will develop a simple service that will listen to events on the ethereum blockchain, more precisely the transfer event of ENS NFTs.
 
 Different types of oracles exist, some of them are:
 
@@ -43,7 +43,7 @@ Different types of oracles exist, some of them are:
 
 ## 3. Setup the ethereum oracle project
 
-We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise you will need to run a full node.
+We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise it will be necessary to run a full node.
 
 ### 3.1. Install Rust
 
@@ -265,4 +265,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## 5. Do you need to develop an oracle or a bridge?
 
-You can me [Lorenzo Zaccagnini](https://www.linkedin.com/in/lorenzo-zaccagnini/) or [Elisa Romondia](https://www.linkedin.com/in/elisa-romondia/) on LinkedIn. If you want to support me you can donate eth or matic to 0xbf8d0d4be61De94EFCCEffbe5D414f911F11cBF8
+You can contact me [Lorenzo Zaccagnini](https://www.linkedin.com/in/lorenzo-zaccagnini/) or [Elisa Romondia](https://www.linkedin.com/in/elisa-romondia/) on LinkedIn. If you want to support me you can donate eth or matic to 0xbf8d0d4be61De94EFCCEffbe5D414f911F11cBF8
