@@ -59,7 +59,14 @@ cargo new simple-rust-oracle
 
 ### 3.3. Add the dependencies
 
-We will use the web3 crate to interact with the Ethereum blockchain. We will add the web3 crate to our **Cargo.toml** file. **Tokio** is a runtime for asynchronous Rust applications. The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world). Ethnum is used to handle big unsigned integers.
+We will add the web3 and other dependencies to our **Cargo.toml** file:
+
+- **Web3**: the web3 crate is a Rust library for interacting with Ethereum and other blockchain nodes. It provides a full set of features for interacting with the blockchain, including sending transactions, reading data from the blockchain, and listening to events.
+- **Tokio** is a runtime for asynchronous Rust applications.
+- The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world).
+- Ethnum is used to handle big unsigned integers.
+
+This how our **Cargo.toml** file should look like:
 
 ```toml
 [dependencies]
@@ -71,7 +78,7 @@ ethnum = "1.3.0"
 
 ### 3.4. Create a .env file
 
-We will create a .env file in the root of our project. We will store our [Alchemy API key](https://www.alchemy.com/) in this file. We will load this file in our code with the dotenv crate.
+We will create a .env file in the root of our project. We will store our [Alchemy API key](https://www.alchemy.com/) in this file and load it with the dotenv crate.
 
 You can use [Infura](https://infura.io/) instead of Alchemy, just replace the Alchemy API key with your Infura API key.
 
