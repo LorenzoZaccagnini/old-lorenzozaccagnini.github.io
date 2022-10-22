@@ -33,7 +33,7 @@ Different types of oracles exist, some of them are:
 - Outbound oracles: they send transactions to the blockchain
 - Hybrid oracles: they listen to events on the blockchain and send transactions to the blockchain
 
-## 3. How to develop an oracle
+## 3. Setup the ethereum oracle project
 
 We will develop a simple oracle that will listen to the transfer event of CryptoKitties NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise you will need to run a full node.
 
@@ -57,12 +57,16 @@ We will use the web3 crate to interact with the Ethereum blockchain. We will add
 [dependencies]
 web3 = "0.17.0"
 tokio = { version= "1", features = ["full"] }
-dotenv = "0.15.0
+dotenv = "0.15.0"
 ```
 
 ### 3.4. Create a .env file
 
 We will create a .env file in the root of our project. We will store our [Alchemy API key](https://www.alchemy.com/) in this file. We will load this file in our code with the dotenv crate.
+
+You can use [Infura](https://infura.io/) instead of Alchemy, just replace the Alchemy API key with your Infura API key.
+
+In both cases you have to signup to get an API key. **I will use the mainnet API key** to listen to the CryptoKitties NFTs transfer events. You can use the testnet API key if you want to test the oracle on the testnet.
 
 ```bash
 touch .env
@@ -74,12 +78,87 @@ The .env file should look like this:
 ALCHEMY_API_KEY=wss://eth-mainnet.g.alchemy.com/v2/S0meR4nd0mStr1ng
 ```
 
-### 3.5. Create a main.rs file
+## 4. Develop the ethereum oracle
 
-We will create a main.rs file in the src folder. This is the entry point of our application.
+### 4.1. Load the environment variables
 
-```bash
-touch src/main.rs
+We will load the environment variables with the dotenv crate. We will use the **dotenv::dotenv()** function to load the environment variables from the .env file. We will use the **dotenv::var()** function to get the value of a specific environment variable.
+
+```rust
+
+use dotenv::dotenv;
+
+fn main() {
+    dotenv().ok();
+    let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
+}
 ```
 
-### 3.6. Write the code
+### 4.2. Connect to the Ethereum blockchain
+
+We will use the web3 crate and the Alchemy API to connect to the Ethereum blockchain.
+
+```rust
+use dotenv::dotenv;
+use web3;
+
+fn main() {
+    dotenv().ok();
+    let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
+    let web3 = web3::Web3::new(web3::transports::Http::new(&alchemy_api_key).unwrap());
+}
+```
+
+### 4.3. Filter to the CryptoKitties NFTs transfer events
+
+We need to know the CryptoKitties smartcontract address to listen to the transfer events. We can find the address of the CryptoKitties smartcontract on [Etherscan](https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d#code).
+
+**WAIT!** We want to listen to a specific event, no to every event of the smart contract so we need to know the event signature. The event signature is the hash of the event name and the event parameters.
+
+Signature or topic0 = 0x + keccak256("Transfer(address,address,uint256)"))
+
+0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef = Transfer(address,address,uint256)
+
+As you can see here on (Etherscan)[https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d#events] the event signature is 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+
+![](/images/post_pics/simple_rust_oracle/eventetherscan.jpg)
+
+Let's code it!
+
+```rust
+use dotenv::dotenv;
+use web3;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
+    let web3 = web3::Web3::new(web3::transports::WebSocket::new(&alchemy_api_key).await?);
+
+    let contract_address = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d";
+    let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    let filter = web3::types::FilterBuilder::default()
+        .address(vec![contract_address.parse().unwrap()])
+        .from_block(web3::types::BlockNumber::Latest)
+        .topics(
+            Some(vec![event_signature.parse().unwrap()]),
+            None,
+            None,
+            None,
+        )
+        .build();
+
+    Ok(())
+}
+```
+
+As you can read I set the contract address and the event signature. I also wrote the filter to listen to the latest block. The filter contains the contract address and the event signature.
+
+### 4.4. Listen and print the Ethereum CryptoKitties transfer events
+
+Now we need to subscribe to the filter and listen to the events. We will use the **web3.eth_subscribe()** function to subscribe to the filter. We will use the **web3::types::Log** struct to decode the event data.
+
+```rust
+
+```
