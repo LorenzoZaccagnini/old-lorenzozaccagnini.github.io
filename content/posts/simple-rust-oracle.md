@@ -11,7 +11,7 @@ tags:
 image: "/images/post_pics/soulbound-nft-cover.jpg"
 ---
 
-A blockhain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track everytime a [CryptoKitty NFT](https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
+A blockhain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track everytime a [Ethereum Name Service NFT](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
 
 ## 1. Why blockchains can't access external data sources
 
@@ -25,7 +25,7 @@ This is why blockchains need oracles, external data must be fed into the blockch
 
 ## 2. What is an oracle?
 
-Most of the time is a simple service that listens to events on the blockchain and updates the state of the smart contract. It can also be a smart contract that is called by other smart contracts to get external data. In this case we will develop a simple service that will listen to events on the ethereum blockchain, more precisely the transfer event of CryptoKitties NFTs.
+Most of the time is a simple service that listens to events on the blockchain and updates the state of the smart contract. It can also be a smart contract that is called by other smart contracts to get external data. In this case we will develop a simple service that will listen to events on the ethereum blockchain, more precisely the transfer event of ENS NFTs.
 
 Different types of oracles exist, some of them are:
 
@@ -35,7 +35,7 @@ Different types of oracles exist, some of them are:
 
 ## 3. Setup the ethereum oracle project
 
-We will develop a simple oracle that will listen to the transfer event of CryptoKitties NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise you will need to run a full node.
+We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise you will need to run a full node.
 
 ### 3.1. Install Rust
 
@@ -66,7 +66,7 @@ We will create a .env file in the root of our project. We will store our [Alchem
 
 You can use [Infura](https://infura.io/) instead of Alchemy, just replace the Alchemy API key with your Infura API key.
 
-In both cases you have to signup to get an API key. **I will use the mainnet API key** to listen to the CryptoKitties NFTs transfer events. You can use the testnet API key if you want to test the oracle on the testnet.
+In both cases you have to signup to get an API key. **I will use the mainnet API key** to listen to the ENS NFTs transfer events. You can use the testnet API key if you want to test the oracle on the testnet.
 
 ```bash
 touch .env
@@ -109,9 +109,9 @@ fn main() {
 }
 ```
 
-### 4.3. Filter to the CryptoKitties NFTs transfer events
+### 4.3. Filter to the ENS NFTs transfer events
 
-We need to know the CryptoKitties smartcontract address to listen to the transfer events. We can find the address of the CryptoKitties smartcontract on [Etherscan](https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d#code).
+We need to know the ENS smartcontract address to listen to the transfer events. We can find the address of the ENS smartcontract on [Etherscan](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code).
 
 **WAIT!** We want to listen to a specific event, no to every event of the smart contract so we need to know the event signature. The event signature is the hash of the event name and the event parameters.
 
@@ -119,7 +119,7 @@ Signature or topic0 = 0x + keccak256("Transfer(address,address,uint256)"))
 
 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef = Transfer(address,address,uint256)
 
-As you can see here on (Etherscan)[https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d#events] the event signature is 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+As you can see here on (Etherscan)[https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#events] the event signature is 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
 
 ![](/images/post_pics/simple_rust_oracle/eventetherscan.jpg)
 
@@ -135,7 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
     let web3 = web3::Web3::new(web3::transports::WebSocket::new(&alchemy_api_key).await?);
 
-    let contract_address = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d";
+    let contract_address = "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85";
     let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
     let filter = web3::types::FilterBuilder::default()
@@ -153,12 +153,66 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-As you can read I set the contract address and the event signature. I also wrote the filter to listen to the latest block. The filter contains the contract address and the event signature.
+As you can read I set the contract address and the event signature. I also wrote the filter to listen to the latest block. The filter contains the contract address and the event signature. Note that I've used the **topics** function to filter to the specific event and Tokio to run the code asynchronously.
 
-### 4.4. Listen and print the Ethereum CryptoKitties transfer events
+### 4.4. Listen and print the Ethereum ENS transfer events
 
 Now we need to subscribe to the filter and listen to the events. We will use the **web3.eth_subscribe()** function to subscribe to the filter. We will use the **web3::types::Log** struct to decode the event data.
 
 ```rust
+use dotenv::dotenv;
+use web3;
+use web3::futures::{future, StreamExt};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let alchemy_api_key = dotenv::var("ALCHEMY_API_KEY").expect("ALCHEMY_API_KEY must be set");
+    let web3 = web3::Web3::new(web3::transports::WebSocket::new(&alchemy_api_key).await?);
+
+    let contract_address = "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85";
+    let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    let filter = web3::types::FilterBuilder::default()
+        .address(vec![contract_address.parse().unwrap()])
+        .from_block(web3::types::BlockNumber::Latest)
+        .topics(
+            Some(vec![event_signature.parse().unwrap()]),
+            None,
+            None,
+            None,
+        )
+        .build();
+
+    let transfer_listen = web3.eth_subscribe().subscribe_logs(filter).await?;
+
+    transfer_listen
+        .for_each(|log| {
+            println!("log: {:?}", log);
+            future::ready(())
+        })
+        .await;
+
+    Ok(())
+}
+```
+
+I've used **future::ready** to run the code asynchronously. I've also used the **for_each** function to iterate over the events.
+
+**The result should be this:**
+
+![](/images/post_pics/simple_rust_oracle/transferlog.jpg)
+
+### 4.5. Decode the event data
+
+We need to decode the event data to get the transfer details.
+
+```rust
+use dotenv::dotenv;
+use web3;
+use web3::futures::{future, StreamExt};
+use web3::types::Log;
+
+#[tokio::main]
 
 ```
