@@ -37,9 +37,9 @@ Most of the time is a simple service that listens to events on the blockchain an
 
 Different types of oracles exist, some of them are:
 
-- Inbound oracles: they listen to events on the blockchain
-- Outbound oracles: they send transactions to the blockchain
-- Hybrid oracles: they listen to events on the blockchain and send transactions to the blockchain
+- **Inbound oracles:** they listen to events on the blockchain
+- **Outbound oracles:** they send transactions to the blockchain
+- **Hybrid oracles:** they listen to events on the blockchain and send transactions to the blockchain
 
 ## 3. Setup the ethereum oracle project
 
