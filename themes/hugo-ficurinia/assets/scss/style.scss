@@ -1241,6 +1241,12 @@ input {
 }
 
 
+//CUSTOM CSS
+
 h1, h2, h3, strong {
     color: #AAC789 !important;
+}
+
+p {
+    word-break: break-all;
 }
