@@ -37,9 +37,9 @@ Most of the time is a simple service that listens to events on the blockchain an
 
 Different types of oracles exist, some of them are:
 
-- **Inbound oracles:** they listen to events on the blockchain
-- **Outbound oracles:** they send transactions to the blockchain
-- **Hybrid oracles:** they listen to events on the blockchain and send transactions to the blockchain
+- **Inbound oracles**: they listen to events on the blockchain
+- **Outbound oracles**: they send transactions to the blockchain
+- **Hybrid oracles**: they listen to events on the blockchain and send transactions to the blockchain
 
 ## 3. Setup the ethereum oracle project
 
@@ -63,10 +63,10 @@ cargo new simple-rust-oracle
 
 We will add the web3 and other dependencies to our **Cargo.toml** file:
 
-- **Web3**: the web3 crate is a Rust library for interacting with Ethereum and other blockchain nodes. It provides a full set of features for interacting with the blockchain, including sending transactions, reading data from the blockchain, and listening to events.
+- **Web3** crate is a Rust library for interacting with Ethereum and other blockchain nodes. It provides a full set of features for interacting with the blockchain, including sending transactions, reading data from the blockchain, and listening to events.
 - **Tokio** is a runtime for asynchronous Rust applications.
 - The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world).
-- Ethnum is used to handle big unsigned integers.
+- **Ethnum** is used to handle big unsigned integers.
 
 This how our **Cargo.toml** file should look like:
 
