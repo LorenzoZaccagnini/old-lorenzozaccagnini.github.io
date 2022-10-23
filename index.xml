@@ -15,9 +15,9 @@
 <p>Most of the time is a simple service that listens to events on the blockchain and updates the state of the smart contract. It can also be a smart contract that is called by other smart contracts to get external data. In this article we will develop a simple service that will listen to events on the ethereum blockchain, more precisely the transfer event of ENS NFTs.</p>
 <p>Different types of oracles exist, some of them are:</p>
 <ul>
-<li><strong>Inbound oracles:</strong> they listen to events on the blockchain</li>
-<li><strong>Outbound oracles:</strong> they send transactions to the blockchain</li>
-<li><strong>Hybrid oracles:</strong> they listen to events on the blockchain and send transactions to the blockchain</li>
+<li><strong>Inbound oracles</strong>: they listen to events on the blockchain</li>
+<li><strong>Outbound oracles</strong>: they send transactions to the blockchain</li>
+<li><strong>Hybrid oracles</strong>: they listen to events on the blockchain and send transactions to the blockchain</li>
 </ul>
 <h2 id="3-setup-the-ethereum-oracle-project">3. Setup the ethereum oracle project</h2>
 <p>We will develop a simple oracle that will listen to the transfer event of ENS NFTs. We will use Rust and the web3 crate to interact with the Ethereum blockchain. We will use the Alchemy API to interact with the Ethereum blockchain, otherwise it will be necessary to run a full node.</p>
@@ -30,10 +30,10 @@
 </span></span></code></pre></div><h3 id="33-add-the-dependencies">3.3. Add the dependencies</h3>
 <p>We will add the web3 and other dependencies to our <strong>Cargo.toml</strong> file:</p>
 <ul>
-<li><strong>Web3</strong>: the web3 crate is a Rust library for interacting with Ethereum and other blockchain nodes. It provides a full set of features for interacting with the blockchain, including sending transactions, reading data from the blockchain, and listening to events.</li>
+<li><strong>Web3</strong> crate is a Rust library for interacting with Ethereum and other blockchain nodes. It provides a full set of features for interacting with the blockchain, including sending transactions, reading data from the blockchain, and listening to events.</li>
 <li><strong>Tokio</strong> is a runtime for asynchronous Rust applications.</li>
 <li>The <strong>dotenv</strong> crate is used to load environment variables from a .env file, we&rsquo;ll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world).</li>
-<li>Ethnum is used to handle big unsigned integers.</li>
+<li><strong>Ethnum</strong> is used to handle big unsigned integers.</li>
 </ul>
 <p>This how our <strong>Cargo.toml</strong> file should look like:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[dependencies]
