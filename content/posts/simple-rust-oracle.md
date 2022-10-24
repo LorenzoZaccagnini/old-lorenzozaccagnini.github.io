@@ -11,7 +11,7 @@ tags:
 image: "/images/post_pics/oraclecover.jpg"
 ---
 
-A blockhain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track everytime a [Ethereum Name Service NFT](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
+A blockchain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track every time a [Ethereum Name Service NFT](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
 
 ## 1. Why blockchains can't access external data sources
 
@@ -23,9 +23,9 @@ Let's make an example to illustrate this. Let's say we have a smart contract tha
 
 This is why blockchains need oracles, external data must be fed into the blockchain with a transaction, in this way all nodes in the network will have the same data and the blockchain will remain deterministic.
 
-[Read this fantastic answer on stackoverflow to learn more about that](https://ethereum.stackexchange.com/questions/301/why-cant-contracts-make-api-calls)
+[Read this fantastic answer on StackOverflow to learn more about that](https://ethereum.stackexchange.com/questions/301/why-cant-contracts-make-api-calls)
 
-In my experience I've developed many blockchain oracles, for our project Devoleum and for many other projects. I've used different langauges but Rust is the one that I love the most. I've developed oracles for various use cases:
+In my experience I've developed many blockchain oracles, for our project Devoleum and for many other projects. I've used different languages but Rust is the one that I love the most. I've developed oracles for various use cases:
 
 - Crosschain bridges
 - Connecting IoT to the Ethereum blockchain
@@ -68,7 +68,7 @@ We will add the web3 and other dependencies to our **Cargo.toml** file:
 - The **dotenv** crate is used to load environment variables from a .env file, we'll use it to load our Alchemy API key without hardcoding it in our code (and exposing it to the world).
 - **Ethnum** is used to handle big unsigned integers.
 
-This how our **Cargo.toml** file should look like:
+This is how our **Cargo.toml** file should look like:
 
 ```toml
 [dependencies]
@@ -80,7 +80,7 @@ ethnum = "1.3.0"
 
 ### 3.4. Create a .env file
 
-We will create a .env file in the root of our project. We will store our [Alchemy API key](https://www.alchemy.com/) in this file and load it with the dotenv crate.
+We will create a .env file at the root of our project. We will store our [Alchemy API key](https://www.alchemy.com/) in this file and load it with the dotenv crate.
 
 You can use [Infura](https://infura.io/) instead of Alchemy, just replace the Alchemy API key with your Infura API key.
 
@@ -129,9 +129,9 @@ fn main() {
 
 ### 4.3. Filter to the ENS NFTs transfer events
 
-We need to know the ENS smartcontract address to listen to the transfer events. We can find the address of the ENS smartcontract on [Etherscan](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code).
+We need to know the ENS smart contract address to listen to the transfer events. We can find the address of the ENS smart contract on [Etherscan](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code).
 
-**WAIT!** We want to listen to a specific event, no to every event of the smart contract so we need to know the event signature. The event signature is the hash of the event name and the event parameters.
+**WAIT!** We want to listen to a specific event, not to every event of the smart contract so we need to know the event signature. The event signature is the hash of the event name and the event parameters.
 
 Signature or topic0 = 0x + keccak256("Transfer(address,address,uint256)"))
 
@@ -223,7 +223,7 @@ I've used **future::ready** to run the code asynchronously. I've also used the *
 
 ### 4.5. Decode the event data
 
-We need to decode the event data to get the transfer details. First we import ethnum, after we decode the event data in the **transfer_listen** loop. We get the hex string of token id from the fourth topic, after I use **from_str_radix()** from **ethnum** to convert the hex string to a U256.
+We need to decode the event data to get the transfer details. First, we import ethnum, after we decode the event data in the **transfer_listen** loop. We get the hex string of token id from the fourth topic, after I use **from_str_radix()** from **ethnum** to convert the hex string to a U256.
 
 ```rust
 use dotenv::dotenv;
