@@ -29,7 +29,7 @@ The bridge architecture is very simple from a general point of view. It consists
 
 In this case we will develop a "Burn and mint" architecture, so the smart contract on the source blockchain will be responsible for burning the tokens that need to be transferred. The smart contract on the destination blockchain will be responsible for minting the tokens that need to be transferred. **Again this can work in both directions**.
 
-### 3.1. The bridge token
+### 3.1 The bridge token
 
 The bridge token will be a simple ERC20 token. ERC20 token is a standard for tokens on the Ethereum blockchain. It is a very simple standard that allows the creation of tokens that can be transferred, received, and burned. I will use openzeppelin contracts to develop the bridge token. Openzeppelin is a very popular library for smart contracts development. It contains a lot of useful contracts that can be used to develop smart contracts.
 
@@ -96,3 +96,191 @@ If the contracts are deployed correctly you will see transfer events `mint` or `
 ```
 
 The event signature for ERC20 transfers, equals sha3("Transfer(address,address,uint256)"), to know more about events and topic check my other article [Develop an Ethereum oracle with Rust](https://lorenzozaccagnini.it/posts/simple-rust-oracle/)
+
+## 5. The bridge rust code
+
+The rust code is in part taken from the article [Develop an Ethereum oracle with Rust](https://lorenzozaccagnini.it/posts/simple-rust-oracle/). The rust code is responsible for listening to the transfer events of the bridge token and for calling the `mint` function of the bridge contract on the destination blockchain when a transfer event to the zero address (a burn) is detected.
+
+### 5.1 The bridge crates
+
+This the Cargo.toml file used:
+
+```toml
+[package]
+name = "blockchain_oracle"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+web3 = "0.17.0"
+tokio = { version= "1", features = ["full"] }
+hex = "0.4.3"
+ethnum = "1.3.0"
+```
+
+- **web3** is the crate used to interact with the blockchain.
+- **tokio** is the crate used to run the async code.
+- **hex** is the crate used to convert the bytes to hex. ethnum is the crate used to convert the bytes to u256.
+
+### 5.2 Connecting to the blockchain
+
+Let's start by connecting to the blockchain.
+
+```rust
+use ethnum::U256;
+use web3::contract::Contract;
+use web3::futures::StreamExt;
+
+#[tokio::main]
+async fn main() -> web3::contract::Result<()> {
+    let web3_source_chain_ws =
+        web3::Web3::new(web3::transports::WebSocket::new("ws://localhost:8545").await?);
+    let web3_destination_chain = web3::Web3::new(web3::transports::Http::new("http://localhost:7545")?);
+}
+```
+
+The first part imports the crates, the second part is the main function, the third part is the code that connects to the blockchain. The `web3_source_chain_ws` is the web3 instance used to connect to the source blockchain. The `web3_destination_chain` is the web3 instance used to connect to the destination blockchain. Note that I use websocket to connect to the source blockchain and http to connect to the destination blockchain.
+
+### 5.3 Listening to the transfer events
+
+Here I filter and decode the transfer event, dividing the burn and normal transfer events.
+
+```rust
+use ethnum::U256;
+use web3::contract::Contract;
+use web3::futures::StreamExt;
+
+#[tokio::main]
+async fn main() -> web3::contract::Result<()> {
+    let web3_source_chain_ws =
+        web3::Web3::new(web3::transports::WebSocket::new("ws://localhost:8545").await?);
+    let web3_destination_chain = web3::Web3::new(web3::transports::Http::new("http://localhost:7545")?);
+
+    let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    let filter_source_transfer = web3::types::FilterBuilder::default()
+        .address(vec!["0x71a2f3AE2ed1aC64028218407d1797e89CDFC119"
+            .parse()
+            .unwrap()])
+        .from_block(web3::types::BlockNumber::Latest)
+        .topics(
+            Some(vec![event_signature.parse().unwrap()]),
+            None,
+            None,
+            None,
+        )
+        .build();
+
+    let sub_ganache = web3_source_chain_ws
+        .eth_subscribe()
+        .subscribe_logs(filter_source_transfer)
+        .await?;
+
+    let sub_ganache_logging = sub_ganache.for_each(|log| async move {
+        let address = format!("{:?}", log.clone().unwrap().topics[2]);
+
+        match address.as_str() {
+            "0x0000000000000000000000000000000000000000000000000000000000000000" => {
+                println!("Burned");
+                let amount_decoded =
+                    U256::from_str_radix(&hex::encode(log.unwrap().data.0), 16).unwrap();
+                println!("Amount burned: {}", amount_decoded);
+            }
+            _ => {
+                println!("Transferred");
+            }
+        }
+    });
+
+    sub_ganache_logging.await;
+
+    Ok(())
+}
+```
+
+The amount is not indexed so I decode it from the data field. The `address` is the second topic of the event, so I check if it is the zero address to know if it is a burn or a normal transfer.
+
+If everything is working correctly you should see the `Burned` and `Amount burned` printed in the console, when you call the `burn` function on the source blockchain.
+
+```
+Burned
+Amount burned: 666
+```
+
+### 5.4 Load the smart contract
+
+Now we can listen, half of the work is done. Now we need to load the smart contract on the destination blockchain.
+
+```rust
+use ethnum::U256;
+use web3::contract::Contract;
+use web3::futures::StreamExt;
+
+#[tokio::main]
+async fn main() -> web3::contract::Result<()> {
+    let web3_source_chain_ws =
+        web3::Web3::new(web3::transports::WebSocket::new("ws://localhost:8545").await?);
+    let web3_destination_chain = web3::Web3::new(web3::transports::Http::new("http://localhost:7545")?);
+
+    let event_signature = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    let web3_destination_chain_contract = Contract::from_json(
+        web3_source_chain_ws.eth(),
+        "0x71a2f3AE2ed1aC64028218407d1797e89CDFC119"
+            .parse()
+            .unwrap(),
+        include_bytes!("GBridgeToken.json"),
+    )
+    .unwrap();
+
+    let filter_source_transfer = web3::types::FilterBuilder::default()
+        .address(vec!["0x71a2f3AE2ed1aC64028218407d1797e89CDFC119"
+            .parse()
+            .unwrap()])
+        .from_block(web3::types::BlockNumber::Latest)
+        .topics(
+            Some(vec![event_signature.parse().unwrap()]),
+            None,
+            None,
+            None,
+        )
+        .build();
+
+    let sub_ganache = web3_source_chain_ws
+        .eth_subscribe()
+        .subscribe_logs(filter_source_transfer)
+        .await?;
+
+    let sub_ganache_logging = sub_ganache.for_each(|log| async move {
+        let address = format!("{:?}", log.clone().unwrap().topics[2]);
+
+        match address.as_str() {
+            "0x0000000000000000000000000000000000000000000000000000000000000000" => {
+                println!("Burned");
+                let amount_decoded =
+                    U256::from_str_radix(&hex::encode(log.unwrap().data.0), 16).unwrap();
+                println!("Amount burned: {}", amount_decoded);
+            }
+            _ => {
+                println!("Transferred");
+            }
+        }
+    });
+
+    sub_ganache_logging.await;
+
+    Ok(())
+}
+```
+
+The `web3_destination_chain_contract` is the contract instance on the destination blockchain. The `include_bytes!` macro is used to include the ABI of the smart contract. The ABI is generated by the `solc` compiler. The json file is the ABI that is generated by the `solc` compiler or remix IDE.
+
+### 5.5 Minting the tokens
+
+Now we can mint the tokens on the destination blockchain when we receive a burn event on the source blockchain.
+
+```rust
+
+```
