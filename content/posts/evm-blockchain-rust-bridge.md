@@ -1,6 +1,6 @@
 ---
 title: "Develop an Ethereum bridge with Rust"
-date: 2022-10-22T00:03:47+02:00
+date: 2022-11-14T00:03:47+02:00
 tags:
   - blockchain
   - oracle
