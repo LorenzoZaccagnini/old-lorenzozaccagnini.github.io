@@ -1,0 +1,264 @@
+<!doctype html><html lang=en-us><head><script>location.host!=new URL("https://lorenzozaccagnini.github.io").host&&(location.href="https://lorenzozaccagnini.github.io")</script><meta name=viewport content="width=device-width"><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=7"><link rel=icon href=/favicon.png><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><link rel=apple-touch-icon href=/apple-touch-icon.png><link rel=icon href=/logo.svg type=image/svg+xml><title>Develop an Ethereum bridge with Rust &ndash;
+Thorrwulf</title><link href=/symbols-nerd-font/symbols-nerd-font.css rel=stylesheet><link href=/jetbrains-mono/jetbrains-mono.css rel=stylesheet><link type=text/css rel=stylesheet href=https://lorenzozaccagnini.github.io/css/styles.4fb590fdf90ddd88b596ec927b99b01f06a1a1337224e2495350853435e32f42af51900b9a650049aba70ae80076c5bf21e46981e507d1196ae2f81488b6dc50.css integrity="sha512-T7WQ/fkN3Yi1luySe5mwHwahoTNyJOJJU1CFNDXjL0KvUZALmmUASaunCugAdsW/IeRpgeUH0Rlq4vgUiLbcUA=="><meta name=author content="Lorenzo Zaccagnini"><meta name=keywords content="alchemy,blockchain,bridge,infura,oracle,rust,web3"><meta name=description content="is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as it allows the interoperability of different blockchains. In this article, we will develop a bridge between two EVM-compatible blockchains. We will use the Rust programming language.
+Rust is a programming language that is gaining popularity in the blockchain ecosystem. It is a multi-paradigm language that is safe, fast, and concurrent."><meta property="og:site_name" content="Thorrwulf"><meta property="og:title" content="Develop an Ethereum bridge with Rust"><meta property="og:type" content="article"><meta property="article:author" content="Lorenzo Zaccagnini"><meta property="article:published_time" content="2022-11-14T00:03:47Z+0200"><meta property="article:tag" content="alchemy"><meta property="article:tag" content="blockchain"><meta property="article:tag" content="bridge"><meta property="article:tag" content="infura"><meta property="article:tag" content="oracle"><meta property="article:tag" content="rust"><meta property="article:tag" content="web3"><meta property="og:url" content="https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/"><meta property="og:image" content="https://lorenzozaccagnini.github.io/images/post_pics/rust_evm_bridge.jpg
+        "><meta property="og:description" content="A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as i"><meta name=twitter:card content="summary_large_image"><meta property="twitter:domain" content="lorenzozaccagnini.github.io"><meta property="twitter:url" content="https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/"><meta name=twitter:title content="Develop an Ethereum bridge with Rust"><meta name=twitter:image content="https://lorenzozaccagnini.github.io/images/post_pics/rust_evm_bridge.jpg
+        "><meta name=twitter:description content="A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as i"><link rel=manifest href=/manifest/index.json></head><body><div id=baseContainer><header><div class=titleAndSearchContainer><div id=titleContainer><a class=unstyledLink href=/><img src=/logo.svg></a><div class=rightOfLogo><div class=titleAndHamburger><h1><a class=unstyledLink href=/>Thorrwulf</a></h1></div><div id=wide_nav><nav><ul id=main-nav><li><a href=/>Home</a></li><li><a href=/posts>Posts</a></li><li><a href=https://lorenzozaccagnini.github.io/pages/about/>About</a></li><li><a href=/tags>Tags</a></li></ul></nav></div></div></div><div class=search><input id=searchbar type=text placeholder=Search>
+<a class=nerdlink onclick=newSearch()>&#xf002;</a></div><script>function newSearch(){let e=searchbar.value.trim();if(!e)return;location.href=`/search?q=${e}`}searchbar.onkeyup=e=>{e.keyCode==13&&newSearch()}</script></div><div id=links><a rel=noreferrer target=_blank class=nerdlink href=/index.xml>&#xf09e;
+<span>RSS</span></a>
+<a rel=noreferrer target=_blank class=nerdlink href=https://github.com/LorenzoZaccagnini>&#xf09b;
+<span>Github</span></a>
+<a rel=noreferrer target=_blank class=nerdlink href=https://www.youtube.com/channel/UCG3x5s-ozMUr0uXv4d8mP-g>&#xf16a;
+<span>YouTube</span></a></div></header><div id=contentContainer><div id=content><main><article class="card single"><h1>Develop an Ethereum bridge with Rust</h1><p class=date><span title=Date></span>
+2022-11-14</p><figure style=margin:0><img src=/images/post_pics/rust_evm_bridge.jpg alt></figure><div><p>A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as it allows the interoperability of different blockchains. In this article, we will develop a bridge between two EVM-compatible blockchains. We will use the Rust programming language.</p><p>Rust is a programming language that is gaining popularity in the blockchain ecosystem. It is a multi-paradigm language that is safe, fast, and concurrent. It is also a systems programming language that is designed to build low-level software. It is a great choice for developing blockchain bridges because of its performance and security.</p><h2 id=1-bridges-are-oracles>1. Bridges are oracles</h2><p>Bridges are two-way oracles, which means that they can be used to send data from one blockchain to another. The data can be anything, but in this article, we will focus on sending and burning tokens in two different EVM-compatible blockchains.</p><p>More information about oracles can be found in my previous article:
+<a href=https://lorenzozaccagnini.it/posts/simple-rust-oracle/>Develop an Ethereum oracle with Rust</a></p><h2 id=2-a-bridge-architecture>2. A bridge architecture</h2><p>The bridge architecture is very simple from a general point of view. It consists of two smart contracts, one on each blockchain. The first contract is called the <strong>bridge contract</strong>. It is deployed on the source blockchain and it is responsible for locking or burning the tokens that need to be transferred. The second contract is called the <strong>destination contract</strong>. It is deployed on the destination blockchain and it is responsible for minting the tokens that need to be transferred. This architecture can work in both directions, but in this article, we will focus on the transfer of tokens from the source blockchain to the destination blockchain.</p><h2 id=3-the-bridge-contract>3. The bridge contract</h2><p>In this case we will develop a &ldquo;Burn and mint&rdquo; architecture, so the smart contract on the source blockchain will be responsible for burning the tokens that need to be transferred. The smart contract on the destination blockchain will be responsible for minting the tokens that need to be transferred. <strong>Again this can work in both directions</strong>.</p><h3 id=31-the-bridge-token>3.1 The bridge token</h3><p>The bridge token will be a simple ERC20 token. ERC20 token is a standard for tokens on the Ethereum blockchain. It is a very simple standard that allows the creation of tokens that can be transferred, received, and burned. I will use openzeppelin contracts to develop the bridge token. Openzeppelin is a very popular library for smart contracts development. It contains a lot of useful contracts that can be used to develop smart contracts.</p><p>Burning means that the tokens are destroyed. Burning tokens is a very useful feature for a token. It allows the token to be deflationary. Technically means to send the tokens to the address 0x0000000000000000000000000000000000000000. This address is called the zero address and it is a special address that is used to burn tokens. <strong>No one can access the zero address, so the tokens are destroyed forever.</strong></p><p>Transferring assets between two blockchains without burning or locking will cause a double spending problem. The double spending problem is a problem that occurs when the same asset is spent more than once. In this case, the asset is the token. If the token is not burned or locked, it can be spent on both blockchains. This will cause a double spending problem and makes the token worthless <strong>like your developer skills.</strong></p><p>This will happen with a probability of 101% because bridges are oracles. Oracles are not 101% reliable. They can fail and they often fail. If this bridge fails, the token will be spent on both blockchains and people on twitter will call you a scammer. So if you are a scammer you can skip this step.</p><h3 id=32-coding-the-bridge-contract>3.2 Coding the bridge contract</h3><p>The smart contract code will be the same on both blockchains, but deployed obviously on both blockchains. The code is very simple and it is composed of two functions: <code>burn</code> and <code>mint</code>. The <code>burn</code> function is responsible for burning the tokens that need to be transferred. The <code>mint</code> function is responsible for minting the tokens that need to be transferred.</p><p>Only the owner of the smart contract can call the <code>mint</code> function. The owner of the smart contract is the address that deployed the smart contract. If someone that is not the owner of the smart contract can call the <code>mint</code> function, the bridge will be vulnerable to attacks and people on twitter will call you a scammer, again. So please use a multisig wallet to deploy the smart contract, so people on twitter will not call only you a scammer, but also the other people in the multisig wallet. LGTM.</p><p>Please don&rsquo;t be the owner of all the multisig wallets, because people on twitter will call you a scammer and a dictator.</p><p>The <code>burn</code> function is responsible for burning the tokens that need to be transferred and can be called by any token holder that has a balance greater than zero.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-solidity data-lang=solidity><span style=display:flex><span><span style=color:#ff79c6>pragma solidity</span> <span style=color:#ff79c6>^</span><span style=color:#bd93f9>0</span>.<span style=color:#bd93f9>8</span>.<span style=color:#bd93f9>9</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> <span style=color:#f1fa8c>&#34;@openzeppelin/contracts@4.8.0/token/ERC20/ERC20.sol&#34;</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> <span style=color:#f1fa8c>&#34;@openzeppelin/contracts@4.8.0/token/ERC20/extensions/ERC20Burnable.sol&#34;</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> <span style=color:#f1fa8c>&#34;@openzeppelin/contracts@4.8.0/access/Ownable.sol&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>contract</span> <span style=color:#50fa7b>GBridgeToken</span> <span style=color:#ff79c6>is</span> ERC20, ERC20Burnable, Ownable {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>constructor</span>() ERC20(<span style=color:#f1fa8c>&#34;gBridgeToken&#34;</span>, <span style=color:#f1fa8c>&#34;GBT&#34;</span>) {
+</span></span><span style=display:flex><span>        _mint(<span style=color:#8be9fd;font-style:italic>msg</span>.<span style=color:#8be9fd;font-style:italic>sender</span>, <span style=color:#bd93f9>1000</span> <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>10</span><span style=color:#ff79c6>**</span>decimals());
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>function</span> <span style=color:#50fa7b>mint</span>(<span style=color:#8be9fd>address</span> to, <span style=color:#8be9fd>uint256</span> amount) <span style=color:#ff79c6>public</span> onlyOwner {
+</span></span><span style=display:flex><span>        _mint(to, amount);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The functions with the underscore are inherited from the openzeppelin contracts. The <code>mint</code> function is responsible for minting the tokens. The <code>burn</code> function is responsible for burning the tokens. The <code>onlyOwner</code> modifier is responsible for checking if the caller of the function is the owner of the smart contract. The <code>owner</code> is the address that deployed the smart contract. The <code>msg.sender</code> is the address that called the function.</p><p>In the constructor I premint 1000 tokens and I assign them to the address that deployed the smart contract. <strong>This is not necessary, but it is a good practice to premint some tokens to the address that deployed the smart contract.</strong> This will allow the owner of the smart contract to test the bridge before deploying it on the mainnet.</p><h2 id=33-deploy-the-bridge-contracts>3.3 Deploy the bridge contracts</h2><p>The bridge contracts can be deployed on any EVM-compatible blockchain. In this article, I will deploy the bridge contracts on two local ganache blockchains. One on <code>localhost:8545</code> and one on <code>localhost:7545</code>.</p><p>I use remix to connect to the ganache blockchains. Remix is a web IDE for smart contracts development. It is very useful for testing smart contracts. It allows you to connect to different blockchains and to deploy smart contracts. It also allows you to interact with the smart contracts.</p><p>Copy the code into remix, compile, select the ganache local chain and deploy the smart contract. If you don&rsquo;t know how to do this you are on the dunning-kruger curve bad side and you should not be developing smart contracts. If you are scammer you can skip this step.</p><p>Jokes apart, learn the basics before developing smart contracts and oracles, people can get really angry on twitter.</p><h2 id=4-events>4. Events</h2><p>Events are a very useful feature of smart contracts. They allow you to log data in the blockchain. The data can be anything, but in this case, we will listen to the transfer event of the bridge token. The transfer event is emitted every time a token is transferred.</p><p>If the contracts are deployed correctly you will see transfer events <code>mint</code> or <code>burn</code> are called. The <code>burn</code> event should look like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#f1fa8c>&#34;topics&#34;</span><span style=color:#ff79c6>:</span> [
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;0x000000000000000000000000399cf2e8d5c14ac04f1599c844a42be4d712b3eb&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;0x0000000000000000000000000000000000000000000000000000000000000000&#34;</span>
+</span></span><span style=display:flex><span>]
+</span></span></code></pre></div><p>The event signature for ERC20 transfers, equals sha3(&ldquo;Transfer(address,address,uint256)&rdquo;), to know more about events and topic check my other article <a href=https://lorenzozaccagnini.it/posts/simple-rust-oracle/>Develop an Ethereum oracle with Rust</a></p><h2 id=5-the-bridge-rust-code>5. The bridge rust code</h2><p>The rust code is in part taken from the article <a href=https://lorenzozaccagnini.it/posts/simple-rust-oracle/>Develop an Ethereum oracle with Rust</a>. The rust code is responsible for listening to the transfer events of the bridge token and for calling the <code>mint</code> function of the bridge contract on the destination blockchain when a transfer event to the zero address (a burn) is detected.</p><h3 id=51-the-bridge-crates>5.1 The bridge crates</h3><p>This the Cargo.toml file used:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=display:flex><span>[package]
+</span></span><span style=display:flex><span>name = <span style=color:#f1fa8c>&#34;blockchain_oracle&#34;</span>
+</span></span><span style=display:flex><span>version = <span style=color:#f1fa8c>&#34;0.1.0&#34;</span>
+</span></span><span style=display:flex><span>edition = <span style=color:#f1fa8c>&#34;2021&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4># See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[dependencies]
+</span></span><span style=display:flex><span>web3 = <span style=color:#f1fa8c>&#34;0.17.0&#34;</span>
+</span></span><span style=display:flex><span>tokio = { version= <span style=color:#f1fa8c>&#34;1&#34;</span>, features = [<span style=color:#f1fa8c>&#34;full&#34;</span>] }
+</span></span><span style=display:flex><span>hex = <span style=color:#f1fa8c>&#34;0.4.3&#34;</span>
+</span></span><span style=display:flex><span>ethnum = <span style=color:#f1fa8c>&#34;1.3.0&#34;</span>
+</span></span></code></pre></div><ul><li><strong>web3</strong> is the crate used to interact with the blockchain.</li><li><strong>tokio</strong> is the crate used to run the async code.</li><li><strong>hex</strong> is the crate used to convert the bytes to hex. ethnum is the crate used to convert the bytes to u256.</li></ul><h3 id=52-connecting-to-the-blockchain>5.2 Connecting to the blockchain</h3><p>Let&rsquo;s start by connecting to the blockchain.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#ff79c6>use</span> ethnum::U256;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::contract::{Contract, Options};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::futures::StreamExt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#[tokio::main]</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>main</span>() -&gt; <span style=color:#50fa7b>web3</span>::contract::<span style=color:#8be9fd;font-style:italic>Result</span><span style=color:#ff79c6>&lt;</span>()<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_source_chain_ws <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::WebSocket::new(<span style=color:#f1fa8c>&#34;ws://localhost:8545&#34;</span>).<span style=color:#ff79c6>await</span><span style=color:#ff79c6>?</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The first part imports the crates, the second part is the main function, the third part is the code that connects to the blockchain. The <code>web3_source_chain_ws</code> is the web3 instance used to connect to the source blockchain.</p><h3 id=53-listening-to-the-transfer-events>5.3 Listening to the transfer events</h3><p>Here I filter and decode the transfer event, dividing the burn and normal transfer events.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#ff79c6>use</span> ethnum::U256;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::contract::{Contract, Options};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::futures::StreamExt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#[tokio::main]</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>main</span>() -&gt; <span style=color:#50fa7b>web3</span>::contract::<span style=color:#8be9fd;font-style:italic>Result</span><span style=color:#ff79c6>&lt;</span>()<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_source_chain_ws <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::WebSocket::new(<span style=color:#f1fa8c>&#34;ws://localhost:8545&#34;</span>).<span style=color:#ff79c6>await</span><span style=color:#ff79c6>?</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> event_signature <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> source_sc_address <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;0xB9d01d2E0FF04A2Ff2f0720Dd69e73F7671b55CE&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> filter_source_transfer <span style=color:#ff79c6>=</span> web3::types::FilterBuilder::default()
+</span></span><span style=display:flex><span>        .address(vec![source_sc_address.parse().unwrap()])
+</span></span><span style=display:flex><span>        .from_block(web3::types::BlockNumber::Latest)
+</span></span><span style=display:flex><span>        .topics(
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>Some</span>(vec![event_signature.parse().unwrap()]),
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>        .build();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sub_ganache <span style=color:#ff79c6>=</span> web3_source_chain_ws
+</span></span><span style=display:flex><span>        .eth_subscribe()
+</span></span><span style=display:flex><span>        .subscribe_logs(filter_source_transfer)
+</span></span><span style=display:flex><span>        .<span style=color:#ff79c6>await</span><span style=color:#ff79c6>?</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sub_ganache_logging <span style=color:#ff79c6>=</span> sub_ganache.for_each(<span style=color:#ff79c6>|</span>log<span style=color:#ff79c6>|</span> <span style=color:#ff79c6>async</span> <span style=color:#ff79c6>move</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> address <span style=color:#ff79c6>=</span> format!(<span style=color:#f1fa8c>&#34;{:?}&#34;</span>, log.clone().unwrap().topics[<span style=color:#bd93f9>2</span>]);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>match</span> address.as_str() {
+</span></span><span style=display:flex><span>            <span style=color:#f1fa8c>&#34;0x0000000000000000000000000000000000000000000000000000000000000000&#34;</span> <span style=color:#ff79c6>=&gt;</span> {
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Burned&#34;</span>);
+</span></span><span style=display:flex><span>                <span style=color:#8be9fd;font-style:italic>let</span> amount_decoded <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>                    U256::from_str_radix(<span style=color:#ff79c6>&amp;</span>hex::encode(log.unwrap().data.<span style=color:#bd93f9>0</span>), <span style=color:#bd93f9>16</span>).unwrap();
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Amount burned: {}&#34;</span>, amount_decoded);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            _ <span style=color:#ff79c6>=&gt;</span> {
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Transferred&#34;</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    sub_ganache_logging.<span style=color:#ff79c6>await</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>Ok</span>(())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The amount is not indexed so I decode it from the data field. The <code>address</code> is the second topic of the event, is where the token are sent, so I check if it is the zero address to know if it is a burn or a normal transfer.</p><p>If everything is working correctly you should see the <code>Burned</code> and <code>Amount burned</code> printed in the console, when you call the <code>burn</code> function on the source blockchain.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>Burned
+</span></span><span style=display:flex><span>Amount burned: 666
+</span></span></code></pre></div><h3 id=54-load-the-smart-contract>5.4 Load the smart contract</h3><p>Now we can listen, half of the work is done. Now we need to load the smart contract on the destination blockchain. We create a new <code>function mint_tokens</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>mint_tokens</span>(amount: <span style=color:#8be9fd>u64</span>, account_target: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>, smart_contract_address: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::Http::new(<span style=color:#f1fa8c>&#34;http://localhost:7545&#34;</span>).unwrap());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain_contract <span style=color:#ff79c6>=</span> Contract::from_json(
+</span></span><span style=display:flex><span>        web3_destination_chain.eth(),
+</span></span><span style=display:flex><span>        smart_contract_address.parse().unwrap(),
+</span></span><span style=display:flex><span>        include_bytes!(<span style=color:#f1fa8c>&#34;GBridgeToken.json&#34;</span>),
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>    .unwrap();
+</span></span></code></pre></div><p>The <code>web3_destination_chain_contract</code> is the contract instance on the destination blockchain. The <code>include_bytes!</code> macro is used to include the ABI of the smart contract. The ABI is generated by the <code>solc</code> compiler. The json file is the ABI that is generated by the <code>solc</code> compiler or remix IDE.</p><h3 id=55-minting-the-tokens>5.5 Minting the tokens</h3><p>Now we can mint the tokens on the destination blockchain when we receive a burn event on the source blockchain.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>mint_tokens</span>(amount: <span style=color:#8be9fd>u64</span>, account_target: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>, smart_contract_address: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::Http::new(<span style=color:#f1fa8c>&#34;http://localhost:7545&#34;</span>).unwrap());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain_contract <span style=color:#ff79c6>=</span> Contract::from_json(
+</span></span><span style=display:flex><span>        web3_destination_chain.eth(),
+</span></span><span style=display:flex><span>        smart_contract_address.parse().unwrap(),
+</span></span><span style=display:flex><span>        include_bytes!(<span style=color:#f1fa8c>&#34;GBridgeToken.json&#34;</span>),
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>    .unwrap();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> ganache_accounts <span style=color:#ff79c6>=</span> web3_destination_chain.eth().accounts().<span style=color:#ff79c6>await</span>.unwrap();
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> account <span style=color:#ff79c6>=</span> ganache_accounts[<span style=color:#bd93f9>0</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>//convert account_target to address
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> account_target_address <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::types::Address::from_slice(<span style=color:#ff79c6>&amp;</span>hex::decode(account_target.replace(<span style=color:#f1fa8c>&#34;0x&#34;</span>, <span style=color:#f1fa8c>&#34;&#34;</span>)).unwrap());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    web3_destination_chain_contract
+</span></span><span style=display:flex><span>        .call(
+</span></span><span style=display:flex><span>            <span style=color:#f1fa8c>&#34;mint&#34;</span>,
+</span></span><span style=display:flex><span>            (account_target_address, amount),
+</span></span><span style=display:flex><span>            account,
+</span></span><span style=display:flex><span>            Options::default(),
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>        .<span style=color:#ff79c6>await</span>
+</span></span><span style=display:flex><span>        .unwrap();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>First I get the accounts from the destination blockchain, then I convert the <code>account_target</code> to an address. The <code>account_target</code> sends token to the same address on the destination blockchain.</p><p>The <code>account</code> is the account that will call the <code>mint</code> function, it should be the owner of the smart contract on the destination blockchain. The <code>Options::default()</code> is used to set the gas price and gas limit. The <code>web3_destination_chain_contract.call</code> is used to call the <code>mint</code> function.</p><p>The <code>amount</code> is the amount of tokens that will be minted on the destination blockchain, it is same quantity of the burned tokens on the source blockchain.</p><p>If you see the token balance of the <code>account_target</code> on the destination blockchain, you should see the added the amount of tokens that you burned on the source blockchain.</p><h3 id=56-putting-it-all-together>5.6 Putting it all together</h3><p>Now we can put it all together. We need to listen to the transfer events on the source blockchain and mint the tokens on the destination blockchain.</p><p>All the code can be found in this <a href=https://github.com/LorenzoZaccagnini/EVM-blockchain-rust-bridge>GitHub repository</a></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#ff79c6>use</span> ethnum::U256;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::contract::{Contract, Options};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>use</span> web3::futures::StreamExt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#[tokio::main]</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>main</span>() -&gt; <span style=color:#50fa7b>web3</span>::contract::<span style=color:#8be9fd;font-style:italic>Result</span><span style=color:#ff79c6>&lt;</span>()<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_source_chain_ws <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::WebSocket::new(<span style=color:#f1fa8c>&#34;ws://localhost:8545&#34;</span>).<span style=color:#ff79c6>await</span><span style=color:#ff79c6>?</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> event_signature <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> source_sc_address <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;0xB9d01d2E0FF04A2Ff2f0720Dd69e73F7671b55CE&#34;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> destionation_sc_address <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;0x4641B307794E29062906dc5fEd72152faEBB1C77&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> filter_source_transfer <span style=color:#ff79c6>=</span> web3::types::FilterBuilder::default()
+</span></span><span style=display:flex><span>        .address(vec![source_sc_address.parse().unwrap()])
+</span></span><span style=display:flex><span>        .from_block(web3::types::BlockNumber::Latest)
+</span></span><span style=display:flex><span>        .topics(
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>Some</span>(vec![event_signature.parse().unwrap()]),
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>None</span>,
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>        .build();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sub_ganache <span style=color:#ff79c6>=</span> web3_source_chain_ws
+</span></span><span style=display:flex><span>        .eth_subscribe()
+</span></span><span style=display:flex><span>        .subscribe_logs(filter_source_transfer)
+</span></span><span style=display:flex><span>        .<span style=color:#ff79c6>await</span><span style=color:#ff79c6>?</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sub_ganache_logging <span style=color:#ff79c6>=</span> sub_ganache.for_each(<span style=color:#ff79c6>|</span>log<span style=color:#ff79c6>|</span> <span style=color:#ff79c6>async</span> <span style=color:#ff79c6>move</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> address <span style=color:#ff79c6>=</span> format!(<span style=color:#f1fa8c>&#34;{:?}&#34;</span>, log.clone().unwrap().topics[<span style=color:#bd93f9>2</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> address_from_raw <span style=color:#ff79c6>=</span> format!(<span style=color:#f1fa8c>&#34;{:?}&#34;</span>, log.clone().unwrap().topics[<span style=color:#bd93f9>1</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> address_from_decoded <span style=color:#ff79c6>=</span> format!(<span style=color:#f1fa8c>&#34;0x{}&#34;</span>, <span style=color:#ff79c6>&amp;</span>address_from_raw[<span style=color:#bd93f9>26</span><span style=color:#ff79c6>..</span><span style=color:#bd93f9>66</span>]);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>match</span> address.as_str() {
+</span></span><span style=display:flex><span>            <span style=color:#f1fa8c>&#34;0x0000000000000000000000000000000000000000000000000000000000000000&#34;</span> <span style=color:#ff79c6>=&gt;</span> {
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Burned&#34;</span>);
+</span></span><span style=display:flex><span>                <span style=color:#8be9fd;font-style:italic>let</span> amount_decoded <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>                    U256::from_str_radix(<span style=color:#ff79c6>&amp;</span>hex::encode(log.clone().unwrap().data.<span style=color:#bd93f9>0</span>), <span style=color:#bd93f9>16</span>).unwrap();
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Amount burned: {}&#34;</span>, amount_decoded);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>//mint tokens on the destination chain
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                mint_tokens(
+</span></span><span style=display:flex><span>                    amount_decoded.as_u64(),
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&amp;</span>address_from_decoded,
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&amp;</span>destionation_sc_address,
+</span></span><span style=display:flex><span>                )
+</span></span><span style=display:flex><span>                .<span style=color:#ff79c6>await</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Burned from: {}&#34;</span>, address_from_decoded);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            _ <span style=color:#ff79c6>=&gt;</span> {
+</span></span><span style=display:flex><span>                println!(<span style=color:#f1fa8c>&#34;Transferred&#34;</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    sub_ganache_logging.<span style=color:#ff79c6>await</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>Ok</span>(())
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>async</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>mint_tokens</span>(amount: <span style=color:#8be9fd>u64</span>, account_target: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>, smart_contract_address: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>str</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::Web3::new(web3::transports::Http::new(<span style=color:#f1fa8c>&#34;http://localhost:7545&#34;</span>).unwrap());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> web3_destination_chain_contract <span style=color:#ff79c6>=</span> Contract::from_json(
+</span></span><span style=display:flex><span>        web3_destination_chain.eth(),
+</span></span><span style=display:flex><span>        smart_contract_address.parse().unwrap(),
+</span></span><span style=display:flex><span>        include_bytes!(<span style=color:#f1fa8c>&#34;GBridgeToken.json&#34;</span>),
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>    .unwrap();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> ganache_accounts <span style=color:#ff79c6>=</span> web3_destination_chain.eth().accounts().<span style=color:#ff79c6>await</span>.unwrap();
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> account <span style=color:#ff79c6>=</span> ganache_accounts[<span style=color:#bd93f9>0</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>//convert account_target to address
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> account_target_address <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        web3::types::Address::from_slice(<span style=color:#ff79c6>&amp;</span>hex::decode(account_target.replace(<span style=color:#f1fa8c>&#34;0x&#34;</span>, <span style=color:#f1fa8c>&#34;&#34;</span>)).unwrap());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    web3_destination_chain_contract
+</span></span><span style=display:flex><span>        .call(
+</span></span><span style=display:flex><span>            <span style=color:#f1fa8c>&#34;mint&#34;</span>,
+</span></span><span style=display:flex><span>            (account_target_address, amount),
+</span></span><span style=display:flex><span>            account,
+</span></span><span style=display:flex><span>            Options::default(),
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>        .<span style=color:#ff79c6>await</span>
+</span></span><span style=display:flex><span>        .unwrap();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>I&rsquo;ve added the mint function to the main function when a burn event is detected. The <code>mint_tokens</code> function is the same as the one we used in the previous section.</p><h2 id=6-aggregate-transactions-on-a-bridge-oracle>6. Aggregate transactions on a bridge oracle</h2><p>An efficient bridge oracle will aggregate the transactions before sending them to the destination blockchain. It&rsquo;s really important to aggregate the transactions because it will reduce the gas cost and the transaction fees, imagine a bridge oracle use thousand of times every day that will send a transaction for each transfer event, it will be really expensive.</p><p>In order to do that is possible to use data structure like a Merkle tree. A Merkle tree is a data structure that allows to aggregate the transactions and verify the aggregated transactions. In the future we will see the use of Verkle trees that are more efficient than Merkle trees. Maybe this topic will be covered in a future article.</p><h2 id=7-do-you-need-to-develop-an-oracle-or-a-bridge>7. Do you need to develop an oracle or a bridge?</h2><p>You can contact me <a href=https://www.linkedin.com/in/lorenzo-zaccagnini/>Lorenzo Zaccagnini</a> or <a href=https://www.linkedin.com/in/elisa-romondia/>Elisa Romondia</a> on LinkedIn. If you want to support me you can donate eth or matic to 0xbf8d0d4be61De94EFCCEffbe5D414f911F11cBF8</p></div></article><hr><p class=articleTagsContainer><span></span>
+<strong>Tags:</strong>
+<a href=/tags/alchemy>#alchemy</a>
+<a href=/tags/blockchain>#blockchain</a>
+<a href=/tags/bridge>#bridge</a>
+<a href=/tags/infura>#infura</a>
+<a href=/tags/oracle>#oracle</a>
+<a href=/tags/rust>#rust</a>
+<a href=/tags/web3>#web3</a></p><a style=margin-bottom:24px;display:inline-block class=shareBtn onclick=openFediInstanceDialog()>Share on the Fediverse</a><div id=fediInstanceDialog><div class=bg onclick=closeFediInstanceDialog()></div><div class=dialog><h2>Enter your instance's address</h2><input id=fediInstanceInput placeholder='Eg. mastodon.social' type=text><div class=buttons><a class=shareBtn onclick=closeFediInstanceDialog()>Cancel</a>
+<a class=shareBtn onclick=shareOnFedi()>Share</a></div></div></div><script>var articleTitle="Develop an Ethereum bridge with Rust",articleLink="https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/",fediInstanceDialog=document.getElementById("fediInstanceDialog"),fediInstanceInput=document.getElementById("fediInstanceInput");function openFediInstanceDialog(){fediInstanceDialog.classList.add("open")}function closeFediInstanceDialog(){fediInstanceDialog.classList.remove("open")}function fixURL(e){return e.substr(0,8)=="https://"?e:e.substr(0,7)=="http://"?e:"https://"+e}function shareOnFedi(){let e=fediInstanceInput.value.trim();if(!e)return;e=fixURL(e),window.open(`${e}/share?text=${articleTitle}%20${articleLink}`,"__blank"),closeFediInstanceDialog()}</script><div class=relatedArticlesContainer><hr><h2>More posts like this</h2><div class=postlist><article class="card postlistitem"><div><h2><a href=https://lorenzozaccagnini.github.io/posts/simple-rust-oracle/>Develop an Ethereum oracle with Rust</a></h2><p class=date><span title=Date></span>
+2022-10-22
+|
+<span title=Tags></span>
+<a href=/tags/alchemy>#alchemy</a>
+<a href=/tags/blockchain>#blockchain</a>
+<a href=/tags/infura>#infura</a>
+<a href=/tags/oracle>#oracle</a>
+<a href=/tags/rust>#rust</a>
+<a href=/tags/web3>#web3</a></p><div class=articlePreview><p>A blockchain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track every time a Ethereum Name Service NFT is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
+Stay with me until the end to learn how to listen to events on the Ethereum blockchain, you will learn how events work and how to use them in your smart contracts and oracles.</p><p><a href=https://lorenzozaccagnini.github.io/posts/simple-rust-oracle/>Continue reading </a></p></div></div><hr></article><article class="card postlistitem"><div><h2><a href=https://lorenzozaccagnini.github.io/posts/soulbound-nft/>Develop a Soulbound NFT using Foundry and Slither</a></h2><p class=date><span title=Date></span>
+2022-08-16
+|
+<span title=Tags></span>
+<a href=/tags/blockchain>#blockchain</a>
+<a href=/tags/cybersecurity>#cybersecurity</a>
+<a href=/tags/foundry>#foundry</a>
+<a href=/tags/hardhat>#hardhat</a>
+<a href=/tags/nft>#nft</a>
+<a href=/tags/slither>#slither</a></p><div class=articlePreview><p>Today we will develop a Soulbound NFT, an NFT that can be only minted and not traded or transferred, it is bounded to the first owner. We&rsquo;ll do it using foundry with hardhat integrated. The Github workflow will test (foundry solidity and hardhat typescript) the contracts and uses Slither to statically analyze the code, trying to find the most common vulnerabilities.
+You can find all the code used in my repository here</p><p><a href=https://lorenzozaccagnini.github.io/posts/soulbound-nft/>Continue reading </a></p></div></div><hr></article></div></div></main><footer><hr><p><small>2022 &copy; Lorenzo Zaccagnini- <a href=https://creativecommons.org/licenses/by/4.0/>Creative Commons Attribution 4.0 International License</a>.</small></p><p><small><a href=https://gitlab.com/gabmus/hugo-ficurinia>Ficurinia theme</a> for <a href=https://gohugo.io>Hugo</a> by <a href=https://gabmus.org>Gabriele Musco</a>. Licensed under <a href=https://www.gnu.org/licenses/agpl-3.0.html>GNU AGPLv3</a>.</small></p></footer></div></div></div></body></html>
