@@ -215,7 +215,11 @@ article, .articlePreview {
     img {
         margin: auto;
         display: block;
-        max-width: 100%;
+        max-height: 600px;
+        //media query to make images responsive
+        @media (max-width: 620px) {
+            max-width: 100%;
+        }
     }
 
     pre, code {

@@ -16,7 +16,7 @@ copyright = "Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International
     svgicon = "/logo.svg"
     icon512 = "/android-chrome-512x512.png"
     
-    imageInArticlePreview = true
+    imageInArticlePreview = false
 
     enableShareOnFediverse = true
 

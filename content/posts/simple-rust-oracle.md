@@ -13,6 +13,8 @@ image: "/images/post_pics/oraclecover.jpg"
 
 A blockchain oracle is a service that allows smart contracts to interact with external data sources. In this post, we will develop a simple oracle that will track every time a [Ethereum Name Service NFT](https://etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85) is transferred. We will use Rust and the web3 crate to interact with the Ethereum blockchain.
 
+Stay with me until the end to learn how to listen to events on the Ethereum blockchain, you will learn how events work and how to use them in your smart contracts and oracles. Interoperability is a key feature of the Ethereum blockchain, and oracles are a key component of this interoperability.
+
 ## 1. Why blockchains can't access external data sources
 
 Blockchains can't access external data sources natively because it is a deterministic system. Each node in the network has a copy of the blockchain, they must all agree on the same state. If a smart contract was able to access external data sources, it would break the deterministic nature of the blockchain. The verification of the state of the blockchain would be impossible, remember same inputs always produce the same outputs.

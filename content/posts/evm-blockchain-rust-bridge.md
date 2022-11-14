@@ -9,16 +9,18 @@ tags:
   - alchemy
   - infura
   - web3
-image: "/images/post_pics/oraclecover.jpg"
+image: "/images/post_pics/rust_evm_bridge.jpg"
 ---
 
 A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as it allows the interoperability of different blockchains. In this article, we will develop a bridge between two EVM-compatible blockchains. We will use the Rust programming language.
+
+Rust is a programming language that is gaining popularity in the blockchain ecosystem. It is a multi-paradigm language that is safe, fast, and concurrent. It is also a systems programming language that is designed to build low-level software. It is a great choice for developing blockchain bridges because of its performance and security.
 
 ## 1. Bridges are oracles
 
 Bridges are two-way oracles, which means that they can be used to send data from one blockchain to another. The data can be anything, but in this article, we will focus on sending and burning tokens in two different EVM-compatible blockchains.
 
-More information about oracles can be found in the following article:
+More information about oracles can be found in my previous article:
 [Develop an Ethereum oracle with Rust](https://lorenzozaccagnini.it/posts/simple-rust-oracle/)
 
 ## 2. A bridge architecture
@@ -273,6 +275,8 @@ If you see the token balance of the `account_target` on the destination blockcha
 ### 5.6 Putting it all together
 
 Now we can put it all together. We need to listen to the transfer events on the source blockchain and mint the tokens on the destination blockchain.
+
+All the code can be found in this [GitHub repository](https://github.com/LorenzoZaccagnini/EVM-blockchain-rust-bridge)
 
 ```rust
 use ethnum::U256;
