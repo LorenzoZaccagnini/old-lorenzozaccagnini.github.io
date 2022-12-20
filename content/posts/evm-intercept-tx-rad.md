@@ -1,6 +1,6 @@
 ---
 title: "Intercept pending transactions with Rust"
-date: 2022-11-20T00:03:47+02:00
+date: 2022-12-20T00:03:47+02:00
 tags:
   - blockchain
   - oracle
