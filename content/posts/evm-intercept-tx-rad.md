@@ -13,11 +13,9 @@ tags:
 image: "/images/post_pics/evm-intercept.jpg"
 ---
 
-Transactions on blockchain are not instant. They are pending until they are confirmed by the network. This is a security feature of the blockchain. It is not possible to change the history of the blockchain. This is why it is important to wait for the transaction to be confirmed before sending another transaction. In this article we will see how to intercept pending transactions with rust.
+Transactions on blockchain are not instant. They are pending until they are confirmed by the network. This is a security feature of the blockchain. This is why it is important to wait for the transaction to be confirmed before sending another transaction. In this article we will see how to intercept pending transactions with rust.
 
-## 1. Intercept pending transactions
-
-## 1.1 Transaction lifecycle
+## 1. Transaction lifecycle
 
 An Ethereum transaction lifecycle is as follows:
 
@@ -37,9 +35,9 @@ The mempool is a pool of pending transactions. The transactions are pending unti
 
 ### 2.1 Why intercept pending transactions?
 
-There are many reasons and on of them is money, some bots frontrun pending transactions to make a profit. It's possibile to frontrun any transaction by increasing the gas price. The gas price is the amount of money that the sender is willing to pay for the transaction to be confirmed. The higher the gas price, the higher the priority of the transaction. The transaction with the highest gas price is confirmed first.
+There are many reasons and one of them is money, some bots intercept pending transactions to make a profit. Front running means that a bot will intercept a pending transaction and will execute another transaction before the original sender. It's possibile to frontrun a transaction by increasing the gas price. The gas price is the amount of money that the sender is willing to pay for the transaction to be confirmed. The higher the gas price, the higher the priority of the transaction. The transaction with the highest gas price is confirmed first.
 
-Let's make an example, you are trading a token on Uniswap and you want to buy 100 tokens. You set the gas price to 10 Gwei and the transaction is pending. A bot sees your transaction in the pool and increases the gas price to 20 Gwei. Your transaction is now pending and the bot's transaction is confirmed before yours. The bot knows that your transaction will be executed and he will sell the tokens to you at a higher price. This is called frontrunning.
+Let's make an example, you are trading a token on Uniswap and you want to buy 100 tokens. You set the gas price to 10 Gwei and the transaction is pending. A bot sees your transaction in the pool and increases the gas price to 20 Gwei. Your transaction is now pending and the bot's transaction is confirmed before yours. The bot knows that your transaction will be executed and he will sell the tokens to you at a higher price. **This is called frontrunning**.
 
 ### 2.2 Do you want a sandwich?
 
