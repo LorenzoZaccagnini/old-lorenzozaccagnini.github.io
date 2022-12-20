@@ -1,4 +1,211 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss"><channel><title>Thorrwulf</title><link>https://lorenzozaccagnini.github.io/</link><description>Recent content on Thorrwulf</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).</copyright><lastBuildDate>Mon, 14 Nov 2022 00:03:47 +0200</lastBuildDate><atom:link href="https://lorenzozaccagnini.github.io/index.xml" rel="self" type="application/rss+xml"/><icon>https://lorenzozaccagnini.github.io/logo.svg</icon><item><title>Develop an Ethereum bridge with Rust</title><link>https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/</link><pubDate>Mon, 14 Nov 2022 00:03:47 +0200</pubDate><guid>https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/</guid><description><![CDATA[<p>A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as it allows the interoperability of different blockchains. In this article, we will develop a bridge between two EVM-compatible blockchains. We will use the Rust programming language.</p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss"><channel><title>Thorrwulf</title><link>https://lorenzozaccagnini.github.io/</link><description>Recent content on Thorrwulf</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Lorenzo Zaccagnini- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).</copyright><lastBuildDate>Sun, 20 Nov 2022 00:03:47 +0200</lastBuildDate><atom:link href="https://lorenzozaccagnini.github.io/index.xml" rel="self" type="application/rss+xml"/><icon>https://lorenzozaccagnini.github.io/logo.svg</icon><item><title>Intercept pending transactions with Rust</title><link>https://lorenzozaccagnini.github.io/posts/evm-intercept-tx-rad/</link><pubDate>Sun, 20 Nov 2022 00:03:47 +0200</pubDate><guid>https://lorenzozaccagnini.github.io/posts/evm-intercept-tx-rad/</guid><description><![CDATA[<p>Transactions on blockchain are not instant. They are pending until they are confirmed by the network. This is a security feature of the blockchain. It is not possible to change the history of the blockchain. This is why it is important to wait for the transaction to be confirmed before sending another transaction. In this article we will see how to intercept pending transactions with rust.</p>
+<h2 id="1-intercept-pending-transactions">1. Intercept pending transactions</h2>
+<h2 id="11-transaction-lifecycle">1.1 Transaction lifecycle</h2>
+<p>An Ethereum transaction lifecycle is as follows:</p>
+<ol>
+<li>The transaction is created and signed by the sender.</li>
+<li>The transaction is broadcasted to the network.</li>
+<li>The transaction is pending until it is confirmed by the network.</li>
+<li>The transaction is confirmed by the network.</li>
+</ol>
+<p>The transaction is confirmed when it is included in a block. On Ethereum proof of stake network, the block is mined by a validator. The validator is a node that is running the Ethereum client and is participating in the consensus. The validator is selected randomly from the network. The validator is selected based on the stake that the validator has in the network.</p>
+<h2 id="2-the-mempool">2. The Mempool</h2>
+<p>The mempool is a pool of pending transactions. The transactions are pending until they are confirmed by the network. On Ethereum we don&rsquo;t have a single universal mempool. Each node has its own mempool. Even different clients use different jargon for the mempool.</p>
+<ul>
+<li>On Geth the mempool is called the transaction pool.</li>
+<li>On Parity the mempool is called the transaction queue.</li>
+</ul>
+<h3 id="21-why-intercept-pending-transactions">2.1 Why intercept pending transactions?</h3>
+<p>There are many reasons and on of them is money, some bots frontrun pending transactions to make a profit. It&rsquo;s possibile to frontrun any transaction by increasing the gas price. The gas price is the amount of money that the sender is willing to pay for the transaction to be confirmed. The higher the gas price, the higher the priority of the transaction. The transaction with the highest gas price is confirmed first.</p>
+<p>Let&rsquo;s make an example, you are trading a token on Uniswap and you want to buy 100 tokens. You set the gas price to 10 Gwei and the transaction is pending. A bot sees your transaction in the pool and increases the gas price to 20 Gwei. Your transaction is now pending and the bot&rsquo;s transaction is confirmed before yours. The bot knows that your transaction will be executed and he will sell the tokens to you at a higher price. This is called frontrunning.</p>
+<h3 id="22-do-you-want-a-sandwich">2.2 Do you want a sandwich?</h3>
+<p>The Ethereum network is a public network and anyone can see the pending transactions. It is possible to intercept pending transactions and make a profit. The bot will increase the gas price of the transaction and will execute the transaction before the original sender. <strong>The sandwich attack is a type of frontrunning attack</strong>, <a href="https://github.com/Defi-Cartel/salmonella">it&rsquo;s about placing a trade before and after a victim trade, in order to exploit the slippage that has been created</a>. The bot will buy the token and sell it to the original sender at a higher price. The bot will make a profit by selling the token at a higher price.</p>
+<p>In a future article we will see how to make a sandwich attack, but for now let&rsquo;s see how to intercept and decode pending transactions.</p>
+<h2 id="3-intercept-pending-transactions-with-rust">3. Intercept pending transactions with rust</h2>
+<p>In this section we will see how to intercept pending transactions with rust. We will use the web3 library to interact with the Ethereum network. We will use the web3 library to intercept pending transactions and we will use the dotenv library to load the environment variables of alchemy.</p>
+<h3 id="31-create-a-new-rust-project">3.1 Create a new rust project</h3>
+<p>Create a new rust project with cargo:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cargo new intercept_tx
+</span></span></code></pre></div><p>Add the dependencies to the Cargo.toml file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[package]
+</span></span><span style="display:flex;"><span>name = <span style="color:#f1fa8c">&#34;evm-intercept-tx&#34;</span>
+</span></span><span style="display:flex;"><span>version = <span style="color:#f1fa8c">&#34;0.1.0&#34;</span>
+</span></span><span style="display:flex;"><span>edition = <span style="color:#f1fa8c">&#34;2021&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[dependencies]
+</span></span><span style="display:flex;"><span>dotenv = <span style="color:#f1fa8c">&#34;0.15.0&#34;</span>
+</span></span><span style="display:flex;"><span>hex = <span style="color:#f1fa8c">&#34;0.4.3&#34;</span>
+</span></span><span style="display:flex;"><span>tokio = <span style="color:#f1fa8c">&#34;1.21.2&#34;</span>
+</span></span><span style="display:flex;"><span>web3 = <span style="color:#f1fa8c">&#34;0.18.0&#34;</span>
+</span></span></code></pre></div><h3 id="32-load-the-environment-variables">3.2 Load the environment variables</h3>
+<p>Create a .env file and add the alchemy api key:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">ALCHEMY_API_KEY</span><span style="color:#ff79c6">=</span>your_alchemy_api_key
+</span></span></code></pre></div><p>Add the dotenv library to the main.rs file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">use</span> dotenv::dotenv;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> hex;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::futures::TryStreamExt;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::types::TransactionId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#[tokio::main]</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">main</span>() -&gt; <span style="color:#50fa7b">web3</span>::<span style="color:#8be9fd;font-style:italic">Result</span> {
+</span></span><span style="display:flex;"><span>    dotenv().ok();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> alchemy_api_key <span style="color:#ff79c6">=</span> dotenv::var(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY&#34;</span>).expect(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY must be set&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="33-connect-to-the-ethereum-network">3.3 Connect to the Ethereum network</h3>
+<p>Add the web3 library to the main.rs file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">main</span>() -&gt; <span style="color:#50fa7b">web3</span>::<span style="color:#8be9fd;font-style:italic">Result</span> {
+</span></span><span style="display:flex;"><span>    dotenv().ok();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> alchemy_api_key <span style="color:#ff79c6">=</span> dotenv::var(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY&#34;</span>).expect(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY must be set&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> web3 <span style="color:#ff79c6">=</span> web3::Web3::new(web3::transports::WebSocket::new(<span style="color:#ff79c6">&amp;</span>alchemy_api_key).<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now you should be able to connect to the Ethereum network.</p>
+<h3 id="34-intercept-pending-transactions">3.4 Intercept pending transactions</h3>
+<p>Here we will use the &lsquo;subscribe_new_pending_transactions&rsquo; method of web3 to intercept pending transactions. The &lsquo;subscribe_new_pending_transactions&rsquo; method returns a stream of pending transactions.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">use</span> dotenv::dotenv;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> hex;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::futures::TryStreamExt;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::types::TransactionId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#[tokio::main]</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">main</span>() -&gt; <span style="color:#50fa7b">web3</span>::<span style="color:#8be9fd;font-style:italic">Result</span> {
+</span></span><span style="display:flex;"><span>    dotenv().ok();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> alchemy_api_key <span style="color:#ff79c6">=</span> dotenv::var(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY&#34;</span>).expect(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY must be set&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> web3 <span style="color:#ff79c6">=</span> web3::Web3::new(web3::transports::WebSocket::new(<span style="color:#ff79c6">&amp;</span>alchemy_api_key).<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#ff79c6">mut</span> pending_transactions <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>        .eth_subscribe()
+</span></span><span style="display:flex;"><span>        .subscribe_new_pending_transactions()
+</span></span><span style="display:flex;"><span>        .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">while</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(pending_transaction_hash) <span style="color:#ff79c6">=</span> pending_transactions.try_next().<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd;font-style:italic">let</span> transaction <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>            .eth()
+</span></span><span style="display:flex;"><span>            .transaction(TransactionId::from(pending_transaction_hash))
+</span></span><span style="display:flex;"><span>            .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(transaction) <span style="color:#ff79c6">=</span> transaction {
+</span></span><span style="display:flex;"><span>            println!(<span style="color:#f1fa8c">&#34;Transaction hash: {}&#34;</span>, transaction);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">Ok</span>(())
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now we are logging every pending transaction in the node mempool. The &lsquo;subscribe_new_pending_transactions&rsquo; method returns a stream of pending transactions. The stream is an iterator that returns a pending transaction hash. We can use the &rsquo;transaction&rsquo; method of web3 to get the transaction details. The &rsquo;transaction&rsquo; method returns a transaction object. The transaction object contains the transaction details.</p>
+<h3 id="35-filter-pending-transactions">3.5 Filter pending transactions</h3>
+<p>We can filter pending transactions by the destination address. We can use the &rsquo;to&rsquo; field of the transaction object to filter the transactions. The &rsquo;to&rsquo; field contains the destination address of the transaction.</p>
+<p>The address 0x31c8eacbffdd875c74b94b077895bd78cf1e64a3 is the RAD token. We will intercept the pending transactions of the RAD token.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">use</span> dotenv::dotenv;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> hex;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::futures::TryStreamExt;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::types::TransactionId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#[tokio::main]</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">main</span>() -&gt; <span style="color:#50fa7b">web3</span>::<span style="color:#8be9fd;font-style:italic">Result</span> {
+</span></span><span style="display:flex;"><span>    dotenv().ok();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> alchemy_api_key <span style="color:#ff79c6">=</span> dotenv::var(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY&#34;</span>).expect(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY must be set&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> web3 <span style="color:#ff79c6">=</span> web3::Web3::new(web3::transports::WebSocket::new(<span style="color:#ff79c6">&amp;</span>alchemy_api_key).<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#ff79c6">mut</span> pending_transactions <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>        .eth_subscribe()
+</span></span><span style="display:flex;"><span>        .subscribe_new_pending_transactions()
+</span></span><span style="display:flex;"><span>        .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">//filter transaction based on address
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#8be9fd;font-style:italic">let</span> address <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;0x31c8eacbffdd875c74b94b077895bd78cf1e64a3&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">while</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(pending_transaction_hash) <span style="color:#ff79c6">=</span> pending_transactions.try_next().<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd;font-style:italic">let</span> transaction <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>            .eth()
+</span></span><span style="display:flex;"><span>            .transaction(TransactionId::from(pending_transaction_hash))
+</span></span><span style="display:flex;"><span>            .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(transaction) <span style="color:#ff79c6">=</span> transaction {
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">//filter transaction based on address and method hash
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>            <span style="color:#ff79c6">if</span> transaction.to <span style="color:#ff79c6">==</span> <span style="color:#8be9fd;font-style:italic">Some</span>(address.parse().unwrap()) {
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">//decode input data bytes to hex
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>                println!(<span style="color:#f1fa8c">&#34;transaction: {:?}&#34;</span>, transaction);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">Ok</span>(())
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>You should be able to intercept the pending transactions of the RAD token and see a log like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>transaction: Transaction <span style="color:#ff79c6">{</span> hash: 0x4d5564bbedd6eb902e91b3c6a1d10a4c4029a036e9c4610fd6375932e2636e95, nonce: 5442921, block_hash: Some<span style="color:#ff79c6">(</span>0x15ba42779e7d34714607312e6b4f33f9a926738e527593402ff4ad15c1c7c7c2<span style="color:#ff79c6">)</span>, block_number: Some<span style="color:#ff79c6">(</span>16228505<span style="color:#ff79c6">)</span>, transaction_index: Some<span style="color:#ff79c6">(</span>28<span style="color:#ff79c6">)</span>, from: Some<span style="color:#ff79c6">(</span>0x28c6c06298d514db089934071355e5743bf21d60<span style="color:#ff79c6">)</span>, to: Some<span style="color:#ff79c6">(</span>0x31c8eacbffdd875c74b94b077895bd78cf1e64a3<span style="color:#ff79c6">)</span>, value: 0, gas_price: Some<span style="color:#ff79c6">(</span>16185590269<span style="color:#ff79c6">)</span>, gas: 207128, input: Bytes<span style="color:#ff79c6">([</span>169, 5, 156, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 160, 138, 28, 191, 39, 255, 75, 202, 197, 95, 205, 201, 124, 116, 141, 91, 81, 39, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 108, 144, 48, 150, 116, 138, 0, 0<span style="color:#ff79c6">])</span>, v: Some<span style="color:#ff79c6">(</span>0<span style="color:#ff79c6">)</span>, r: Some<span style="color:#ff79c6">(</span>55005093721274821805649449657760135373297623073244198928033742057513000728837<span style="color:#ff79c6">)</span>, s: Some<span style="color:#ff79c6">(</span>19584657317945855950856553141997014012848398946606485974435162940290921668925<span style="color:#ff79c6">)</span>, raw: None, transaction_type: Some<span style="color:#ff79c6">(</span>2<span style="color:#ff79c6">)</span>, access_list: Some<span style="color:#ff79c6">([])</span>, max_fee_per_gas: Some<span style="color:#ff79c6">(</span>102000000000<span style="color:#ff79c6">)</span>, max_priority_fee_per_gas: Some<span style="color:#ff79c6">(</span>2000000000<span style="color:#ff79c6">)</span> <span style="color:#ff79c6">}</span>
+</span></span></code></pre></div><h3 id="36-decode-input-data">3.6 Decode input data</h3>
+<p>Now we can intercept a pending transaction, but how to decode the input data? The input data is a byte array. We can use the &rsquo;ethabi&rsquo; crate to decode the input data, but in this simple case I will use the &lsquo;hex&rsquo; crate to decode the input data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">use</span> dotenv::dotenv;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> hex;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::futures::TryStreamExt;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">use</span> web3::types::TransactionId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#[tokio::main]</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">main</span>() -&gt; <span style="color:#50fa7b">web3</span>::<span style="color:#8be9fd;font-style:italic">Result</span> {
+</span></span><span style="display:flex;"><span>    dotenv().ok();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> alchemy_api_key <span style="color:#ff79c6">=</span> dotenv::var(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY&#34;</span>).expect(<span style="color:#f1fa8c">&#34;ALCHEMY_API_KEY must be set&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> web3 <span style="color:#ff79c6">=</span> web3::Web3::new(web3::transports::WebSocket::new(<span style="color:#ff79c6">&amp;</span>alchemy_api_key).<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#ff79c6">mut</span> pending_transactions <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>        .eth_subscribe()
+</span></span><span style="display:flex;"><span>        .subscribe_new_pending_transactions()
+</span></span><span style="display:flex;"><span>        .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">//filter transaction based on address
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#8be9fd;font-style:italic">let</span> address <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;0x31c8eacbffdd875c74b94b077895bd78cf1e64a3&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">while</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(pending_transaction_hash) <span style="color:#ff79c6">=</span> pending_transactions.try_next().<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd;font-style:italic">let</span> transaction <span style="color:#ff79c6">=</span> web3
+</span></span><span style="display:flex;"><span>            .eth()
+</span></span><span style="display:flex;"><span>            .transaction(TransactionId::from(pending_transaction_hash))
+</span></span><span style="display:flex;"><span>            .<span style="color:#ff79c6">await</span><span style="color:#ff79c6">?</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#8be9fd;font-style:italic">Some</span>(transaction) <span style="color:#ff79c6">=</span> transaction {
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">//filter transaction based on address and method hash
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>            <span style="color:#ff79c6">if</span> transaction.to <span style="color:#ff79c6">==</span> <span style="color:#8be9fd;font-style:italic">Some</span>(address.parse().unwrap()) {
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">//decode input data bytes to hex
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>                <span style="color:#8be9fd;font-style:italic">let</span> tx_clone <span style="color:#ff79c6">=</span> transaction.clone();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8be9fd;font-style:italic">let</span> input_data <span style="color:#ff79c6">=</span> transaction.input.<span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#8be9fd;font-style:italic">let</span> input_data_hex <span style="color:#ff79c6">=</span> hex::encode(input_data);
+</span></span><span style="display:flex;"><span>                println!(<span style="color:#f1fa8c">&#34;tx input hex: {:?}&#34;</span>, input_data_hex);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">//decode using abi
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> input_data_hex.starts_with(<span style="color:#f1fa8c">&#34;a9059cbb&#34;</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#8be9fd;font-style:italic">let</span> raw_amount <span style="color:#ff79c6">=</span> input_data_hex[<span style="color:#bd93f9">74</span><span style="color:#ff79c6">..</span>].to_string();
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;Raw Amount cutted hex: {:?}&#34;</span>, raw_amount);
+</span></span><span style="display:flex;"><span>                    <span style="color:#6272a4">//decode raw amount to u256
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>                    <span style="color:#8be9fd;font-style:italic">let</span> raw_amount <span style="color:#ff79c6">=</span> hex::decode(raw_amount).unwrap();
+</span></span><span style="display:flex;"><span>                    <span style="color:#6272a4">//convert to u256
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>                    <span style="color:#8be9fd;font-style:italic">let</span> raw_amount <span style="color:#ff79c6">=</span> web3::types::U256::from_big_endian(<span style="color:#ff79c6">&amp;</span>raw_amount);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;//---------------------------------------//&#34;</span>);
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;Raw Amount: {:?}&#34;</span>, raw_amount);
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;Transaction: {:?}&#34;</span>, tx_clone);
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;//---------------------------------------//&#34;</span>);
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#f1fa8c">&#34;Transfer in pending towards RAD token contract&#34;</span>);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">Ok</span>(())
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Let&rsquo;s break it down, &rsquo;let input_data = transaction.input.0;&rsquo; is the input data of the transaction, a byte array. We can convert it to a hex string with &rsquo;let input_data_hex = hex::encode(input_data);&rsquo;.</p>
+<p>Now we can filter the input data based on the method hash. In this case we are looking for the &rsquo;transfer&rsquo; method hash &lsquo;a9059cbb&rsquo;. If the input data starts with &lsquo;a9059cbb&rsquo; we can cut the first 74 characters of the input data hex string. The first 74 characters are the method hash and the address of the receiver.</p>
+<p>The rest of the input data is the amount. We can convert the rest of the input data to a u256 with &rsquo;let raw_amount = web3::types::U256::from_big_endian(&amp;raw_amount);&rsquo;. Now we have the amount of the transfer in pending. We can also print the transaction to see the other data of the transaction. You should see a log like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>tx input hex: <span style="color:#f1fa8c">&#34;a9059cbb000000000000000000000000b51da94ae51c339cec40d78260199f73cebbeba8000000000000000000000000000000000000000000000015954d6c905a060000&#34;</span>
+</span></span><span style="display:flex;"><span>Raw Amount cutted hex: <span style="color:#f1fa8c">&#34;0000000000000000000000000000000000000000000015954d6c905a060000&#34;</span>
+</span></span><span style="display:flex;"><span>//---------------------------------------//
+</span></span><span style="display:flex;"><span>Raw Amount: <span style="color:#bd93f9">398140000000000000000</span>
+</span></span><span style="display:flex;"><span>Transaction: Transaction <span style="color:#ff79c6">{</span> hash: 0xee7013a832ff032fd43fc296e6ea6ffead097db2122981eb971f7f4fd5c5d0dc, nonce: 4931764, block_hash: Some<span style="color:#ff79c6">(</span>0x7fc256c3640e02070d726a8f504948609d5100cbc50910515cffa708a4b01b1c<span style="color:#ff79c6">)</span>, block_number: Some<span style="color:#ff79c6">(</span>16228188<span style="color:#ff79c6">)</span>, transaction_index: Some<span style="color:#ff79c6">(</span>35<span style="color:#ff79c6">)</span>, from: Some<span style="color:#ff79c6">(</span>0xdfd5293d8e347dfe59e90efd55b2956a1343963d<span style="color:#ff79c6">)</span>, to: Some<span style="color:#ff79c6">(</span>0x31c8eacbffdd875c74b94b077895bd78cf1e64a3<span style="color:#ff79c6">)</span>, value: 0, gas_price: Some<span style="color:#ff79c6">(</span>20264315737<span style="color:#ff79c6">)</span>, gas: 207128, input: Bytes<span style="color:#ff79c6">([</span>169, 5, 156, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 181, 29, 169, 74, 229, 28, 51, 156, 236, 64, 215, 130, 96, 25, 159, 115, 206, 187, 235, 168, 0, 0, 0, 0, 0, 0,
+</span></span><span style="display:flex;"><span>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 149, 77, 108, 144, 90, 6, 0, 0<span style="color:#ff79c6">])</span>, v: Some<span style="color:#ff79c6">(</span>1<span style="color:#ff79c6">)</span>, r: Some<span style="color:#ff79c6">(</span>94476206653139298663972815699772140255840765385329375194390453406687512516529<span style="color:#ff79c6">)</span>, s: Some<span style="color:#ff79c6">(</span>34590948637004618330444175192055263866731258644152094038657143970283606957875<span style="color:#ff79c6">)</span>, raw: None, transaction_type: Some<span style="color:#ff79c6">(</span>2<span style="color:#ff79c6">)</span>, access_list: Some<span style="color:#ff79c6">([])</span>, max_fee_per_gas: Some<span style="color:#ff79c6">(</span>102000000000<span style="color:#ff79c6">)</span>, max_priority_fee_per_gas: Some<span style="color:#ff79c6">(</span>2000000000<span style="color:#ff79c6">)</span> <span style="color:#ff79c6">}</span>
+</span></span><span style="display:flex;"><span>//---------------------------------------//
+</span></span><span style="display:flex;"><span>Transfer in pending towards RAD token contract
+</span></span></code></pre></div><p>You can confront the values here with the values <a href="https://etherscan.io/tx/0xee7013a832ff032fd43fc296e6ea6ffead097db2122981eb971f7f4fd5c5d0dc">on the Etherscan transaction page</a>.</p>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>You can see that we know the gas details and the token amount of the transaction, guess what you can do with that information. You can use it to calculate the gas price and the gas cost of the transaction. You can also use it to calculate the amount of tokens that will be transferred when the transaction is confirmed and front-run the transaction.</p>
+<p>Maybe in a future article we will see how to front-run a transaction. If you have any questions or suggestions, please let me know.</p>
+<h2 id="7-do-you-need-to-develop-a-mev-bot">7. Do you need to develop a MEV bot?</h2>
+<p>You can contact me <a href="https://www.linkedin.com/in/lorenzo-zaccagnini/">Lorenzo Zaccagnini</a> or <a href="https://www.linkedin.com/in/elisa-romondia/">Elisa Romondia</a> on LinkedIn. If you want to support me you can donate eth or matic to 0xbf8d0d4be61De94EFCCEffbe5D414f911F11cBF8</p>
+]]></description><media:thumbnail url="https://lorenzozaccagnini.github.io/images/post_pics/evm-intercept.jpg"/></item><item><title>Develop an Ethereum bridge with Rust</title><link>https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/</link><pubDate>Mon, 14 Nov 2022 00:03:47 +0200</pubDate><guid>https://lorenzozaccagnini.github.io/posts/evm-blockchain-rust-bridge/</guid><description><![CDATA[<p>A blockchain bridge is a system that allows the transfer of assets between two different blockchains. It is a crucial component of the blockchain ecosystem as it allows the interoperability of different blockchains. In this article, we will develop a bridge between two EVM-compatible blockchains. We will use the Rust programming language.</p>
 <p>Rust is a programming language that is gaining popularity in the blockchain ecosystem. It is a multi-paradigm language that is safe, fast, and concurrent. It is also a systems programming language that is designed to build low-level software. It is a great choice for developing blockchain bridges because of its performance and security.</p>
 <h2 id="1-bridges-are-oracles">1. Bridges are oracles</h2>
 <p>Bridges are two-way oracles, which means that they can be used to send data from one blockchain to another. The data can be anything, but in this article, we will focus on sending and burning tokens in two different EVM-compatible blockchains.</p>
