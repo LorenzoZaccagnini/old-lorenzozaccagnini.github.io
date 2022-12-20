@@ -41,7 +41,7 @@ Let's make an example, you are trading a token on Uniswap and you want to buy 10
 
 ### 2.2 Do you want a sandwich?
 
-The Ethereum network is a public network and anyone can see the pending transactions. It is possible to intercept pending transactions and make a profit. The bot will increase the gas price of the transaction and will execute the transaction before the original sender. **The sandwich trading strategy is a type of frontrunning**, [it's about placing a trade before and after a target trade, in order to make a profit on the slippage that has been created](https://github.com/Defi-Cartel/salmonella). The bot will buy the token and sell it to the original sender at a higher price. The bot will make a profit by selling the token at a higher price.
+The Ethereum network is a public network and anyone can see the pending transactions. It is possible to intercept pending transactions and make a profit. The bot will increase the gas price of the transaction and will execute the transaction before the original sender. **The sandwich trading strategy is a type of front and back running**, [it's about placing a trade before and after a target trade, in order to make a profit on the slippage that has been created](https://github.com/Defi-Cartel/salmonella). The bot will buy the token and sell it to the original sender at a higher price. The bot will make a profit by selling the token at a higher price.
 
 In a future article we will see how to make a sandwich, but for now let's see how to intercept and decode pending transactions.
 
