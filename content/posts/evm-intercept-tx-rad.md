@@ -35,15 +35,15 @@ The mempool is a pool of pending transactions. The transactions are pending unti
 
 ### 2.1 Why intercept pending transactions?
 
-There are many reasons and one of them is money, some bots intercept pending transactions to make a profit. Front running means that a bot will intercept a pending transaction and will execute another transaction before the original sender. It's possibile to frontrun a transaction by increasing the gas price. The gas price is the amount of money that the sender is willing to pay for the transaction to be confirmed. The higher the gas price, the higher the priority of the transaction. The transaction with the highest gas price is confirmed first.
+There are many reasons and one of them is money, some bots intercept pending transactions to make a profit. Front running means that a bot will intercept a pending transaction and will execute another transaction before the original sender. It's possibile to frontrun a transaction by increasing the gas price. The gas price is the amount of money that the sender is willing to pay for the transaction to be confirmed. The higher the gas price, the higher the priority of the transaction.
 
 Let's make an example, you are trading a token on Uniswap and you want to buy 100 tokens. You set the gas price to 10 Gwei and the transaction is pending. A bot sees your transaction in the pool and increases the gas price to 20 Gwei. Your transaction is now pending and the bot's transaction is confirmed before yours. The bot knows that your transaction will be executed and he will sell the tokens to you at a higher price. **This is called frontrunning**.
 
 ### 2.2 Do you want a sandwich?
 
-The Ethereum network is a public network and anyone can see the pending transactions. It is possible to intercept pending transactions and make a profit. The bot will increase the gas price of the transaction and will execute the transaction before the original sender. **The sandwich attack is a type of frontrunning attack**, [it's about placing a trade before and after a victim trade, in order to exploit the slippage that has been created](https://github.com/Defi-Cartel/salmonella). The bot will buy the token and sell it to the original sender at a higher price. The bot will make a profit by selling the token at a higher price.
+The Ethereum network is a public network and anyone can see the pending transactions. It is possible to intercept pending transactions and make a profit. The bot will increase the gas price of the transaction and will execute the transaction before the original sender. **The sandwich trading strategy is a type of frontrunning**, [it's about placing a trade before and after a target trade, in order to make a profit on the slippage that has been created](https://github.com/Defi-Cartel/salmonella). The bot will buy the token and sell it to the original sender at a higher price. The bot will make a profit by selling the token at a higher price.
 
-In a future article we will see how to make a sandwich attack, but for now let's see how to intercept and decode pending transactions.
+In a future article we will see how to make a sandwich, but for now let's see how to intercept and decode pending transactions.
 
 ## 3. Intercept pending transactions with rust
 
