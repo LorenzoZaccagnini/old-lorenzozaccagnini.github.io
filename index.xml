@@ -7,7 +7,7 @@
 <li>The transaction is pending until it is confirmed by the network.</li>
 <li>The transaction is confirmed by the network.</li>
 </ol>
-<p>The transaction is confirmed when it is included in a block. On Ethereum proof of stake network, the block is mined by a validator. The validator is a node that is running the Ethereum client and is participating in the consensus. The validator is selected randomly from the network. The validator is selected based on the stake that the validator has in the network.</p>
+<p>The transaction is confirmed when it is included in a block. On Ethereum proof of stake network, the block is produced by a validator. The validator is a node that is running the Ethereum client and is participating in the consensus. The validator is selected randomly from the network. The validator is selected based on the stake that the validator has in the network.</p>
 <h2 id="2-the-mempool">2. The Mempool</h2>
 <p>The mempool is a pool of pending transactions. The transactions are pending until they are confirmed by the network. On Ethereum we don&rsquo;t have a single universal mempool. Each node has its own mempool. Even different clients use different jargon for the mempool.</p>
 <ul>
