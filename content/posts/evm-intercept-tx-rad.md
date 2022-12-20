@@ -45,9 +45,15 @@ The Ethereum network is a public network and anyone can see the pending transact
 
 In a future article we will see how to make a sandwich, but for now let's see how to intercept and decode pending transactions.
 
+### 2.3 Generalized frontrunners
+
+Rather than programming complex algorithms to detect profitable MEV opportunities, some searchers run generalized frontrunners. Generalized frontrunners are bots that watch the mempool to detect profitable transactions. The frontrunner will copy the potentially profitable transaction's code, replace addresses with the frontrunner's address, and run the transaction locally to double-check that the modified transaction results in a profit to the frontrunner's address. If the transaction is indeed profitable, the frontrunner will submit the modified transaction with the replaced address and a higher gas price, "frontrunning" the original transaction and getting the original searcher's MEV. [Ethereum.org Source](https://ethereum.org/en/developers/docs/mev/#mev-extraction-generalized-frontrunners)
+
 ## 3. Intercept pending transactions with rust
 
 In this section we will see how to intercept pending transactions with rust. We will use the web3 library to interact with the Ethereum network. We will use the web3 library to intercept pending transactions and we will use the dotenv library to load the environment variables of alchemy.
+
+All the code is available on my [github](https://github.com/LorenzoZaccagnini/EVM-intecept-tx-bot-rust)
 
 ### 3.1 Create a new rust project
 
