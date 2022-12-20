@@ -24,7 +24,7 @@ An Ethereum transaction lifecycle is as follows:
 3. The transaction is pending until it is confirmed by the network.
 4. The transaction is confirmed by the network.
 
-The transaction is confirmed when it is included in a block. On Ethereum proof of stake network, the block is mined by a validator. The validator is a node that is running the Ethereum client and is participating in the consensus. The validator is selected randomly from the network. The validator is selected based on the stake that the validator has in the network.
+The transaction is confirmed when it is included in a block. On Ethereum proof of stake network, the block is produced by a validator. The validator is a node that is running the Ethereum client and is participating in the consensus. The validator is selected randomly from the network. The validator is selected based on the stake that the validator has in the network.
 
 ## 2. The Mempool
 
