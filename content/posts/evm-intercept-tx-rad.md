@@ -117,7 +117,7 @@ Now you should be able to connect to the Ethereum network.
 
 ### 3.4 Intercept pending transactions
 
-Here we will use the 'subscribe_new_pending_transactions' method of web3 to intercept pending transactions. The 'subscribe_new_pending_transactions' method returns a stream of pending transactions.
+Here we will use the `subscribe_new_pending_transactions` method of web3 to intercept pending transactions. The `subscribe_new_pending_transactions` method returns a stream of pending transactions.
 
 ```rust
 use dotenv::dotenv;
@@ -150,11 +150,11 @@ async fn main() -> web3::Result {
 }
 ```
 
-Now we are logging every pending transaction in the node mempool. The 'subscribe_new_pending_transactions' method returns a stream of pending transactions. The stream is an iterator that returns a pending transaction hash. We can use the 'transaction' method of web3 to get the transaction details. The 'transaction' method returns a transaction object. The transaction object contains the transaction details.
+Now we are logging every pending transaction in the node mempool. The `subscribe_new_pending_transactions` method returns a stream of pending transactions. The stream is an iterator that returns a pending transaction hash. We can use the `transaction` method of web3 to get the transaction details. The 'transaction' method returns a transaction object. The transaction object contains the transaction details.
 
 ### 3.5 Filter pending transactions
 
-We can filter pending transactions by the destination address. We can use the 'to' field of the transaction object to filter the transactions. The 'to' field contains the destination address of the transaction.
+We can filter pending transactions by the destination address. We can use the `to` field of the transaction object to filter the transactions. The `to` field contains the destination address of the transaction.
 
 The address 0x31c8eacbffdd875c74b94b077895bd78cf1e64a3 is the RAD token. We will intercept the pending transactions of the RAD token.
 
@@ -204,7 +204,7 @@ transaction: Transaction { hash: 0x4d5564bbedd6eb902e91b3c6a1d10a4c4029a036e9c46
 
 ### 3.6 Decode input data
 
-Now we can intercept a pending transaction, but how to decode the input data? The input data is a byte array. We can use the 'ethabi' crate to decode the input data, but in this simple case I will use the 'hex' crate to decode the input data.
+Now we can intercept a pending transaction, but how to decode the input data? The input data is a byte array. We can use the `ethabi` crate to decode the input data, but in this simple case I will use the `hex` crate to decode the input data.
 
 ```rust
 use dotenv::dotenv;
@@ -265,11 +265,11 @@ async fn main() -> web3::Result {
 }
 ```
 
-Let's break it down, 'let input_data = transaction.input.0;' is the input data of the transaction, a byte array. We can convert it to a hex string with 'let input_data_hex = hex::encode(input_data);'.
+Let's break it down, `let input_data = transaction.input.0;` is the input data of the transaction, a byte array. We can convert it to a hex string with `let input_data_hex = hex::encode(input_data);`.
 
-Now we can filter the input data based on the method hash. In this case we are looking for the 'transfer' method hash 'a9059cbb'. If the input data starts with 'a9059cbb' we can cut the first 74 characters of the input data hex string. The first 74 characters are the method hash and the address of the receiver.
+Now we can filter the input data based on the method hash. In this case we are looking for the `transfer` method hash `a9059cbb`. If the input data starts with `a9059cbb` we can cut the first 74 characters of the input data hex string. The first 74 characters are the method hash and the address of the receiver.
 
-The rest of the input data is the amount. We can convert the rest of the input data to a u256 with 'let raw_amount = web3::types::U256::from_big_endian(&raw_amount);'. Now we have the amount of the transfer in pending. We can also print the transaction to see the other data of the transaction. You should see a log like this:
+The rest of the input data is the amount. We can convert the rest of the input data to a u256 with `let raw_amount = web3::types::U256::from_big_endian(&raw_amount);`. Now we have the amount of the transfer in pending. We can also print the transaction to see the other data of the transaction. You should see a log like this:
 
 ```bash
 tx input hex: "a9059cbb000000000000000000000000b51da94ae51c339cec40d78260199f73cebbeba8000000000000000000000000000000000000000000000015954d6c905a060000"
